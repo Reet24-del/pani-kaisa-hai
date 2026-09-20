@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import {Golgappa} from '@/components/Golgappa'
 import {MapPanel} from '@/components/MapPanel'
-import {PourHero} from '@/components/PourHero'
+import {PaniGirl} from '@/components/PaniGirl'
 import {STATE_LABEL, STATE_MEANING, STATE_ORDER, type AreaState} from '@/lib/states'
 import {fetchSanity, sanityConfigured} from '@/sanity/lib/fetch'
 import {AREAS_QUERY} from '@/sanity/lib/queries'
@@ -56,6 +56,12 @@ export default async function Home() {
 
   return (
     <div className={styles.page}>
+      <aside className={styles.rail} aria-hidden="true">
+        <div className={styles.railInner}>
+          <PaniGirl idPrefix="rail" />
+        </div>
+      </aside>
+
       <header className={styles.bar}>
         <span className={styles.brand}>
           <Golgappa state="crisp" size={30} />
@@ -72,7 +78,7 @@ export default async function Home() {
       <p className={styles.sample}>Sample data — demo build</p>
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className={styles.hero}>
+      <section className={styles.hero} data-mood="pour">
         <div className={styles.heroText}>
           <p className={styles.kicker}>{city ? `${city} · live` : 'Live neighbourhood water watch'}</p>
           <h1 className={styles.h1}>
@@ -97,15 +103,12 @@ export default async function Home() {
         </div>
 
         <div className={styles.heroArt}>
-          <PourHero />
-          <p className={styles.heroCaption}>
-            One puri, one mouthful of pani. Same question, bigger stakes.
-          </p>
+          <PaniGirl idPrefix="hero" />
         </div>
       </section>
 
       {/* ── The four states ──────────────────────────────────── */}
-      <section className={styles.states} aria-labelledby="states-title">
+      <section className={styles.states} data-mood="happy" aria-labelledby="states-title">
         <h2 id="states-title" className={styles.h2}>
           Every neighbourhood is a golgappa
         </h2>
@@ -126,7 +129,7 @@ export default async function Home() {
       </section>
 
       {/* ── Map + areas ──────────────────────────────────────── */}
-      <section id="map" className={styles.mapSection}>
+      <section id="map" className={styles.mapSection} data-mood="unsure">
         <h2 className={styles.h2}>{city ? `Water in ${city} today` : 'Water near you today'}</h2>
 
         {!sanityConfigured ? (
@@ -181,7 +184,7 @@ export default async function Home() {
       </section>
 
       {/* ── How it works ─────────────────────────────────────── */}
-      <section className={styles.how}>
+      <section className={styles.how} data-mood="serious">
         <h2 className={styles.h2}>How a complaint becomes a warning</h2>
         <ol className={styles.steps}>
           <li className={styles.step}>
@@ -214,7 +217,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <footer className={styles.footer}>
+      <footer className={styles.footer} data-mood="alarmed">
         <Golgappa state="phoot" size={34} />
         <div>
           <p className={styles.footerLine}>

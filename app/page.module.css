@@ -515,3 +515,52 @@
   color: var(--muted);
   font-size: 0.88rem;
 }
+
+/* ── The girl at the side ─────────────────────────────────── */
+
+/* Below the rail breakpoint she lives inside the hero; above it, the sticky
+   rail takes over and the hero copy gets the full width. */
+.rail {
+  display: none;
+}
+
+@media (min-width: 1180px) {
+  .rail {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 340px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .railInner {
+    position: sticky;
+    top: 96px;
+    padding-inline: var(--space-4);
+    padding-top: var(--space-5);
+  }
+
+  .page {
+    position: relative;
+    padding-right: 340px;
+  }
+
+  .heroArt {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero .heroText {
+    max-width: 30ch;
+  }
+
+  .lede {
+    max-width: 52ch;
+  }
+}
