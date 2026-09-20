@@ -1,33 +1,47 @@
-/* Design tokens — see DESIGN.md §3–6. State colours are semantic: never
-   decorate with them. */
+/* Design tokens — warm, built from the stall itself: fried puri, imli pani,
+   masala, a steel tumbler. State colours stay semantic: never decorate with them. */
 
 :root {
-  --ground: #f2f6f2;
-  --surface: #ffffff;
-  --surface-alt: #e9f0ea;
-  --ink: #14231b;
-  --muted: #56665d;
-  --rule: #d5e0d7;
-  --rule-strong: #b4c6b9;
+  /* Ground + ink — warm sand and roasted brown */
+  --ground: #fdf1e0;
+  --ground-deep: #f7e3cb;
+  --surface: #fffaf2;
+  --surface-alt: #f6e6d2;
+  --ink: #2b1508;
+  --ink-soft: #4d2d16;
+  --muted: #8a6547;
+  --rule: #ecd7bd;
+  --rule-strong: #d9b995;
 
-  --accent: #8a5714;
-  --accent-soft: #f3e5cc;
-  --pani: #2d7852;
-  --pani-soft: #dfefe5;
+  /* Brand — tamarind and saffron */
+  --accent: #b2450d;
+  --accent-deep: #8a3408;
+  --accent-soft: #fbe0c4;
+  --saffron: #e4890f;
+  --masala: #a8331f;
 
-  --puri: #e2b15b;
-  --puri-soggy: #c39650;
-  --puri-edge: #9a6a24;
-  --puri-hole: #5a3910;
+  /* Pani — imli water, warm brown with a green edge */
+  --pani: #96551d;
+  --pani-light: #c98a3c;
+  --pani-soft: #f6e2c6;
+  --pudina: #5c7a33;
 
-  --ok: #2a7f4b;
-  --ok-soft: #e1f1e6;
-  --watch: #9c6c00;
-  --watch-soft: #faefd3;
-  --bad: #b8362a;
-  --bad-soft: #fae2de;
-  --fresh: #23709b;
-  --fresh-soft: #ddedf6;
+  /* The golgappa itself */
+  --puri: #e9b053;
+  --puri-deep: #d9932f;
+  --puri-soggy: #bd8b46;
+  --puri-edge: #8c5a17;
+  --puri-hole: #4a2a09;
+
+  /* State — semantic only */
+  --ok: #4a7a25;
+  --ok-soft: #e8f0d5;
+  --watch: #a86400;
+  --watch-soft: #fbe6c2;
+  --bad: #b02a17;
+  --bad-soft: #fadfd7;
+  --fresh: #1f6e7d;
+  --fresh-soft: #d9eef0;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -36,13 +50,16 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 72px;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
   --radius-pill: 999px;
 
-  --shadow-sheet: 0 8px 32px rgba(0, 0, 0, 0.16);
-  --shadow-pin: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-sheet: 0 10px 36px rgba(74, 42, 9, 0.18);
+  --shadow-card: 0 2px 14px rgba(74, 42, 9, 0.08);
+  --shadow-pin: 0 3px 8px rgba(74, 42, 9, 0.35);
 
   --font-display: var(--font-baloo), "Segoe UI", system-ui, sans-serif;
   --font-body: var(--font-hind), "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -51,59 +68,81 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ground: #0e1612;
-    --surface: #15201a;
-    --surface-alt: #1b2721;
-    --ink: #e3ece5;
-    --muted: #9aada1;
-    --rule: #243229;
-    --rule-strong: #36493d;
+    --ground: #170f07;
+    --ground-deep: #120b05;
+    --surface: #221609;
+    --surface-alt: #2d1d0c;
+    --ink: #f8e7d1;
+    --ink-soft: #e4cdaf;
+    --muted: #bb9670;
+    --rule: #3a2611;
+    --rule-strong: #563a1c;
 
-    --accent: #e3aa55;
-    --accent-soft: #2a2114;
-    --pani: #71c49b;
-    --pani-soft: #14281d;
+    --accent: #f0922f;
+    --accent-deep: #ffab55;
+    --accent-soft: #3b2310;
+    --saffron: #ffb545;
+    --masala: #e0664c;
 
-    --puri: #d7a44d;
-    --puri-soggy: #a9823f;
-    --puri-edge: #f0c57c;
-    --puri-hole: #3a2407;
+    --pani: #d6934a;
+    --pani-light: #efb872;
+    --pani-soft: #33200d;
+    --pudina: #96b45f;
 
-    --ok: #5dc381;
-    --ok-soft: #15281c;
-    --watch: #e8b640;
-    --watch-soft: #2b2310;
-    --bad: #f07467;
-    --bad-soft: #321814;
-    --fresh: #62b3e1;
-    --fresh-soft: #122532;
+    --puri: #e2a848;
+    --puri-deep: #c98d33;
+    --puri-soggy: #a37c3d;
+    --puri-edge: #f6cd85;
+    --puri-hole: #351d06;
+
+    --ok: #8fc45a;
+    --ok-soft: #1e2a10;
+    --watch: #f0b53f;
+    --watch-soft: #33260c;
+    --bad: #f37a63;
+    --bad-soft: #3a1a12;
+    --fresh: #63bccb;
+    --fresh-soft: #10262b;
+
+    --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.4);
+    --shadow-sheet: 0 10px 36px rgba(0, 0, 0, 0.55);
   }
 }
 
 :root[data-theme="dark"] {
-  --ground: #0e1612;
-  --surface: #15201a;
-  --surface-alt: #1b2721;
-  --ink: #e3ece5;
-  --muted: #9aada1;
-  --rule: #243229;
-  --rule-strong: #36493d;
-  --accent: #e3aa55;
-  --accent-soft: #2a2114;
-  --pani: #71c49b;
-  --pani-soft: #14281d;
-  --puri: #d7a44d;
-  --puri-soggy: #a9823f;
-  --puri-edge: #f0c57c;
-  --puri-hole: #3a2407;
-  --ok: #5dc381;
-  --ok-soft: #15281c;
-  --watch: #e8b640;
-  --watch-soft: #2b2310;
-  --bad: #f07467;
-  --bad-soft: #321814;
-  --fresh: #62b3e1;
-  --fresh-soft: #122532;
+  --ground: #170f07;
+  --ground-deep: #120b05;
+  --surface: #221609;
+  --surface-alt: #2d1d0c;
+  --ink: #f8e7d1;
+  --ink-soft: #e4cdaf;
+  --muted: #bb9670;
+  --rule: #3a2611;
+  --rule-strong: #563a1c;
+  --accent: #f0922f;
+  --accent-deep: #ffab55;
+  --accent-soft: #3b2310;
+  --saffron: #ffb545;
+  --masala: #e0664c;
+  --pani: #d6934a;
+  --pani-light: #efb872;
+  --pani-soft: #33200d;
+  --pudina: #96b45f;
+  --puri: #e2a848;
+  --puri-deep: #c98d33;
+  --puri-soggy: #a37c3d;
+  --puri-edge: #f6cd85;
+  --puri-hole: #351d06;
+  --ok: #8fc45a;
+  --ok-soft: #1e2a10;
+  --watch: #f0b53f;
+  --watch-soft: #33260c;
+  --bad: #f37a63;
+  --bad-soft: #3a1a12;
+  --fresh: #63bccb;
+  --fresh-soft: #10262b;
+  --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.4);
+  --shadow-sheet: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -121,13 +160,13 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 17px;
-  line-height: 1.45;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 /* Devanagari needs more room than Latin. */
 :lang(hi) {
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 h1,
@@ -135,9 +174,10 @@ h2,
 h3 {
   font-family: var(--font-display);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   margin: 0;
   text-wrap: balance;
+  letter-spacing: -0.01em;
 }
 
 a {
@@ -157,7 +197,6 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* Tap targets: DESIGN.md §6 */
 button,
 a.button {
   min-height: 48px;
@@ -176,8 +215,7 @@ a.button {
   }
 }
 
-/* Leaflet pins: the glyph is injected as markup, so its colours live here.
-   Same tokens as components/Golgappa.module.css. */
+/* Leaflet pins: the glyph is injected as markup, so its colours live here. */
 .pin-svg {
   display: block;
   filter: drop-shadow(var(--shadow-pin));
@@ -195,8 +233,8 @@ a.button {
 }
 .pin-shine {
   fill: none;
-  stroke: #fff;
-  stroke-opacity: 0.55;
+  stroke: #fff6e4;
+  stroke-opacity: 0.6;
   stroke-width: 1.6;
   stroke-linecap: round;
 }
@@ -235,4 +273,7 @@ a.button {
 }
 .leaflet-bar a {
   color: var(--ink);
+}
+.leaflet-tile-pane {
+  filter: saturate(0.85) sepia(0.12);
 }
