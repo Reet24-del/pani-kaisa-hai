@@ -144,31 +144,44 @@ export function PaniGirl({idPrefix = 'pg', className = ''}: {idPrefix?: string; 
         <ellipse cx="116" cy="228" rx="21" ry="24" fill="#e8b083" />
         <ellipse cx="216" cy="228" rx="21" ry="24" fill="#e8b083" />
 
-        {/* ── her right arm, bent in, holding the shot glass ─── */}
-        <path
-          d="M206 228C238 250 208 282 148 284"
-          stroke="#c78f60"
-          strokeWidth="31"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <path
-          d="M206 228C238 250 208 282 148 284"
-          stroke="#e8b083"
-          strokeWidth="26"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <g className={styles.glassArm}>
-          {/* stacked bangles at the wrist */}
-          <g stroke="var(--saffron)" strokeWidth="4" strokeLinecap="round" fill="none">
-            <path d="M166 272c-2 8-2 15 0 23" />
-            <path d="M158 273c-2 8-2 15 0 23" />
-          </g>
-          <path d="M150 274c-2 8-2 15 0 23" stroke="var(--masala)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+        {/* Each arm is drawn twice: a slightly larger dark copy underneath and
+            the skin copy on top. The outline then wraps the whole limb, so the
+            elbow and the wrist have no seam where shapes overlap. */}
 
-          {/* hand */}
-          <ellipse cx="134" cy="284" rx="17" ry="14" fill="#e8b083" stroke="#c78f60" strokeWidth="2" />
+        {/* ── her right arm, bringing the glass in ───────────── */}
+        <g className={styles.glassArm}>
+          <g>
+            <path
+              d="M206 228C236 246 214 276 156 282"
+              stroke="#c78f60"
+              strokeWidth="30"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <ellipse cx="146" cy="284" rx="22" ry="17" fill="#c78f60" />
+          </g>
+          <g>
+            <path
+              d="M206 228C236 246 214 276 156 282"
+              stroke="#e8b083"
+              strokeWidth="25"
+              strokeLinecap="round"
+              fill="none"
+            />
+            <ellipse cx="146" cy="284" rx="19" ry="14" fill="#e8b083" />
+          </g>
+          {/* fingers curling round the glass */}
+          <g stroke="#c78f60" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.75">
+            <path d="M138 275c-4 4-4 10 0 14" />
+            <path d="M146 273c-4 5-4 12 0 17" />
+          </g>
+
+          {/* bangles, sitting along the wrist */}
+          <g stroke="var(--saffron)" strokeWidth="4" strokeLinecap="round" fill="none">
+            <path d="M178 269c-2 9-2 15 1 21" />
+            <path d="M170 271c-2 9-2 15 1 21" />
+          </g>
+          <path d="M162 273c-2 9-2 15 1 20" stroke="var(--masala)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
 
           {/* the shot glass, tipped over the puri */}
           <g className={styles.glass}>
@@ -200,26 +213,40 @@ export function PaniGirl({idPrefix = 'pg', className = ''}: {idPrefix?: string; 
           <ellipse cx="66" cy="292" rx="14" ry="4.5" fill="var(--pani-light)" opacity="0.9" />
         </g>
 
-        {/* ── her left arm, holding the golgappa out to the side ─ */}
-        <path
-          d="M116 226C98 248 84 268 80 288"
-          stroke="#c78f60"
-          strokeWidth="31"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <path
-          d="M116 226C98 248 84 268 80 288"
-          stroke="#e8b083"
-          strokeWidth="26"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <g stroke="var(--saffron)" strokeWidth="4" strokeLinecap="round" fill="none">
-          <path d="M72 268c9 2 15 1 22-2" />
-          <path d="M74 277c9 2 15 1 22-2" />
+        {/* ── her left arm, holding the golgappa out ──────────── */}
+        <g>
+          <path
+            d="M118 228C100 250 86 272 82 292"
+            stroke="#c78f60"
+            strokeWidth="30"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <ellipse cx="76" cy="302" rx="25" ry="17" fill="#c78f60" />
         </g>
-        <path d="M76 286c9 2 15 1 21-2" stroke="var(--masala)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
+        <g>
+          <path
+            d="M118 228C100 250 86 272 82 292"
+            stroke="#e8b083"
+            strokeWidth="25"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <ellipse cx="76" cy="302" rx="22" ry="14" fill="#e8b083" />
+        </g>
+        {/* fingers cupping the puri */}
+        <g stroke="#c78f60" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.75">
+          <path d="M64 296c-5 3-6 9-3 13" />
+          <path d="M76 298c-5 3-6 9-3 13" />
+          <path d="M88 297c-5 3-6 9-3 12" />
+        </g>
+
+        {/* bangles at that wrist */}
+        <g stroke="var(--saffron)" strokeWidth="4" strokeLinecap="round" fill="none">
+          <path d="M84 270c-2 9-2 14 0 20" />
+          <path d="M76 274c-2 9-2 14 0 20" />
+        </g>
+        <path d="M68 279c-2 8-2 13 0 19" stroke="var(--masala)" strokeWidth="3.5" strokeLinecap="round" fill="none" />
 
         <g transform="translate(9 7) scale(0.86)">
         <g className={styles.puri}>
@@ -240,14 +267,6 @@ export function PaniGirl({idPrefix = 'pg', className = ''}: {idPrefix?: string; 
           </g>
         </g>
         </g>
-
-        {/* fingers cupped under it */}
-        <path
-          d="M38 284c6 12 20 19 34 18 12-1 22-7 27-16 5 9 1 20-11 25-16 7-38 5-49-4-7-6-8-16-1-23z"
-          fill="#e8b083"
-          stroke="#c78f60"
-          strokeWidth="2"
-        />
 
       </svg>
     </figure>
