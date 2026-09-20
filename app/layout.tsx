@@ -32,10 +32,20 @@ export const metadata: Metadata = {
     'Is the water in your area safe today? Early warning from residents, not a lab test.',
 }
 
-export default function RootLayout({children}: LayoutProps<'/'>) {
+export default async function RootLayout({children}: LayoutProps<'/'>) {
+  // Live Content API keeps open maps in sync with a confirmed alert. Skipped
+  // until the Sanity project exists, so the app still boots without env vars.
+  const {sanityConfigured} = await import('@/sanity/lib/fetch')
+  const SanityLive = sanityConfigured
+    ? (await import('@/sanity/lib/live')).SanityLive
+    : null
+
   return (
     <html lang="en" className={`${baloo.variable} ${hind.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {SanityLive ? <SanityLive /> : null}
+      </body>
     </html>
   )
 }

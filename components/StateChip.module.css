@@ -1,0 +1,45 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  max-width: 100%;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.text strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.reason {
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.crisp {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.soggy {
+  background: var(--watch-soft);
+  color: var(--watch);
+}
+
+.phoot {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.fresh {
+  background: var(--fresh-soft);
+  color: var(--fresh);
+}

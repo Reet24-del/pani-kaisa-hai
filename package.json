@@ -6,19 +6,27 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test \"lib/*.test.ts\" \"sanity/**/*.test.ts\"",
+    "workflow:check": "node --experimental-strip-types --input-type=module -e \"await import('./sanity/workflows/waterCase.ts')\" && echo workflow definition valid"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^6.15.0",
+    "@types/leaflet": "^1.9.22",
+    "leaflet": "^1.9.4",
     "next": "16.3.5",
     "next-sanity": "^13.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-leaflet": "^5.0.0",
     "sanity": "^6.15.0",
+    "server-only": "^0.0.1",
     "styled-components": "^6.5.3"
   },
   "devDependencies": {
+    "@sanity/workflow-engine": "^0.32.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

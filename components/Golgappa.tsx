@@ -1,13 +1,8 @@
+import type {AreaState} from '@/lib/states'
+
 import styles from './Golgappa.module.css'
 
-export type AreaState = 'crisp' | 'soggy' | 'phoot' | 'fresh'
-
-export const STATE_LABEL: Record<AreaState, string> = {
-  crisp: 'Crisp',
-  soggy: 'Soggy',
-  phoot: 'Phoot gaya',
-  fresh: 'Fresh batch',
-}
+export {STATE_LABEL, type AreaState} from '@/lib/states'
 
 /**
  * The golgappa glyph. Shape carries the meaning, colour only reinforces it, so

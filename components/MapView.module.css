@@ -1,0 +1,14 @@
+.map {
+  height: 100%;
+  width: 100%;
+  min-height: 320px;
+}
+
+.pin {
+  background: none;
+  border: 0;
+}
+
+.reason {
+  color: var(--muted);
+}

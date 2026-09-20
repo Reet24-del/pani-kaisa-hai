@@ -175,3 +175,64 @@ a.button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Leaflet pins: the glyph is injected as markup, so its colours live here.
+   Same tokens as components/Golgappa.module.css. */
+.pin-svg {
+  display: block;
+  filter: drop-shadow(var(--shadow-pin));
+}
+.pin-body {
+  fill: var(--puri);
+  stroke: var(--puri-edge);
+  stroke-width: 1.5;
+}
+.pin-body-soggy {
+  fill: var(--puri-soggy);
+}
+.pin-hole {
+  fill: var(--puri-hole);
+}
+.pin-shine {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.55;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.pin-pani {
+  fill: var(--pani);
+}
+.pin-crack {
+  fill: none;
+  stroke: var(--puri-hole);
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.pin-spark {
+  fill: none;
+  stroke: var(--fresh);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/* Leaflet chrome, themed */
+.leaflet-container {
+  background: var(--surface-alt);
+  font-family: var(--font-body);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-md);
+}
+.leaflet-bar a,
+.leaflet-control-attribution {
+  background: var(--surface);
+  color: var(--muted);
+}
+.leaflet-bar a {
+  color: var(--ink);
+}
