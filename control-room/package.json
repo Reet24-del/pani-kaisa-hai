@@ -1,0 +1,25 @@
+{
+  "name": "pani-control-room",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "sanity app dev",
+    "build": "sanity app build",
+    "deploy": "sanity app deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sanity/sdk-react": "^3.3.0",
+    "@sanity/ui": "^3.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "sanity": "^6.15.0",
+    "typescript": "^5.9.0"
+  }
+}

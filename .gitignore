@@ -43,3 +43,7 @@ next-env.d.ts
 # Sanity
 .env.local
 seed.ndjson
+
+# control room app has its own lockfile-managed deps
+control-room/node_modules
+control-room/dist

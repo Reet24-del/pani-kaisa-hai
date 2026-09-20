@@ -1,5 +1,7 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+import {ReadingInput} from '../components/ReadingInput'
+
 /**
  * One resident's observation. Evidence, never a decision.
  *
@@ -80,6 +82,7 @@ export const reportType = defineType({
         defineArrayMember({
           type: 'object',
           name: 'reading',
+          components: {input: ReadingInput},
           fields: [
             defineField({
               name: 'parameter',

@@ -4,6 +4,7 @@ import {summariseCase} from '@/lib/ai'
 import {sendAlertEmail} from '@/lib/email'
 import {DEFAULT_SETTINGS, breakdown, scoreReports, type ReportLike, type RiskSettings} from '@/lib/risk'
 import type {AreaState} from '@/lib/states'
+import {rainMm48h} from '@/lib/weather'
 
 import {getWriteClient} from './client'
 
@@ -74,6 +75,8 @@ type CaseDoc = {
   status: string
   areaId: string
   areaName: string
+  lat?: number
+  lng?: number
   reports: ReportLike[]
 }
 
@@ -86,6 +89,8 @@ export async function rescoreCase(caseId: string): Promise<void> {
         _id, status,
         "areaId": area._ref,
         "areaName": area->name,
+        "lat": area->centre.lat,
+        "lng": area->centre.lng,
         "reports": reports[]->{
           _id, submittedAt, deviceHash, waterSigns, illness,
           "readings": readings[]{
@@ -100,7 +105,15 @@ export async function rescoreCase(caseId: string): Promise<void> {
   ])
   if (!doc) return
 
-  const score = scoreReports(doc.reports ?? [], config)
+  // Heavy rain in the last 48 hours makes contamination likelier, so it lowers
+  // the bar for asking a person to look.
+  const rain =
+    typeof doc.lat === 'number' && typeof doc.lng === 'number'
+      ? await rainMm48h(doc.lat, doc.lng)
+      : undefined
+
+  const score = scoreReports(doc.reports ?? [], config, {rainMm48h: rain})
+  const suspectedSource = await traceSource(doc.areaId)
 
   // A machine may push a case to "needs verification" and no further. Cases a
   // person has already decided are never moved by the scorer.
@@ -121,10 +134,33 @@ export async function rescoreCase(caseId: string): Promise<void> {
       scoreBreakdown: breakdown(score),
       aiSummary: summary,
       status,
+      ...(suspectedSource ? {suspectedSource: ref(suspectedSource)} : {}),
     })
     .commit()
 
   await refreshAreaState(doc.areaId)
+}
+
+/**
+ * Source tracing: one pipeline feeding several areas that all went soggy at
+ * once is a better explanation than three unlucky neighbourhoods.
+ *
+ * Only verifiers see this. Naming a tanker operator on a public page before
+ * anyone has checked would be an accusation, not a warning.
+ */
+async function traceSource(areaId: string): Promise<string | null> {
+  const client = getWriteClient()
+
+  const sources = await client.fetch<{_id: string; affected: number}[]>(
+    `*[_type == "waterSource" && references($areaId)]{
+      _id,
+      "affected": count(areasServed[]->[state in ["soggy", "phoot"]])
+    } | order(affected desc)`,
+    {areaId},
+  )
+
+  const worst = sources[0]
+  return worst && worst.affected >= 2 ? worst._id : null
 }
 
 /**
