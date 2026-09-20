@@ -1,0 +1,45 @@
+.gg {
+  flex: none;
+  display: block;
+}
+
+.body {
+  fill: var(--puri);
+  stroke: var(--puri-edge);
+  stroke-width: 1.5;
+}
+
+.soggy .body {
+  fill: var(--puri-soggy);
+}
+
+.hole {
+  fill: var(--puri-hole);
+}
+
+.shine {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.55;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.pani {
+  fill: var(--pani);
+}
+
+.crack {
+  fill: none;
+  stroke: var(--puri-hole);
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.spark {
+  fill: none;
+  stroke: var(--fresh);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
