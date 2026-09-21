@@ -183,6 +183,47 @@ export default async function Home() {
         )}
       </section>
 
+      {/* ── What an alert looks like ─────────────────────────── */}
+      <section className={styles.burst} data-mood="alarmed" aria-labelledby="burst-title">
+        <h2 id="burst-title" className={styles.h2}>
+          When the golgappa bursts
+        </h2>
+        <p className={styles.sectionLede}>
+          This is what residents see once a health worker confirms contamination — and nothing
+          like it appears until one does.
+        </p>
+        <article className={styles.alertCard}>
+          <div className={styles.alertHead}>
+            <Golgappa state="phoot" size={52} />
+            <div>
+              <p className={styles.alertArea}>Sector 14 · Phoot gaya</p>
+              <p className={styles.alertAction}>Do not drink the tap water.</p>
+            </div>
+          </div>
+          <p className={styles.alertBody}>
+            Use boiled or packaged water for drinking and cooking until this is cleared.
+          </p>
+          <p className={styles.alertBody} lang="hi">
+            नल का पानी न पिएँ। जब तक सूचना न मिले, उबला या पैकेज्ड पानी लें।
+          </p>
+          <dl className={styles.alertMeta}>
+            <div>
+              <dt>Confirmed by</dt>
+              <dd>Asha D., ASHA worker</dd>
+            </div>
+            <div>
+              <dt>Why</dt>
+              <dd>E. coli strip positive at two homes; five households reported a sewage smell.</dd>
+            </div>
+            <div>
+              <dt>Sent to</dt>
+              <dd>Municipal water desk, with the evidence</dd>
+            </div>
+          </dl>
+          <p className={styles.alertNote}>Example alert — sample data.</p>
+        </article>
+      </section>
+
       {/* ── How it works ─────────────────────────────────────── */}
       <section className={styles.how} data-mood="serious">
         <h2 className={styles.h2}>How a complaint becomes a warning</h2>
@@ -217,7 +258,7 @@ export default async function Home() {
         </p>
       </section>
 
-      <footer className={styles.footer} data-mood="alarmed">
+      <footer className={styles.footer} data-mood="relieved">
         <Golgappa state="phoot" size={34} />
         <div>
           <p className={styles.footerLine}>

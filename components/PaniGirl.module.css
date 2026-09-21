@@ -8,17 +8,64 @@
   max-width: 300px;
 }
 
-.svg {
+/* All four poses share one canvas and sit on top of each other. */
+.stage {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
-  overflow: visible;
-  filter: drop-shadow(0 12px 24px rgba(74, 42, 9, 0.14));
+  aspect-ratio: 560 / 833;
+  animation: sway 5s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+/* A soft warm floor under her feet, so she stands on something in both themes */
+.stage::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 1.5%;
+  height: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(74, 42, 9, 0.28), transparent);
+  z-index: 0;
+}
+
+.pose {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  opacity: 0;
+  transform: translateY(6px) scale(0.985);
+  transition:
+    opacity 380ms ease,
+    transform 380ms cubic-bezier(0.2, 1.1, 0.4, 1);
+  z-index: 1;
+  filter: drop-shadow(0 10px 18px rgba(74, 42, 9, 0.16));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.active {
+  opacity: 1;
+  transform: none;
+}
+
+/* Barely-there idle motion so she reads as alive, not pasted in */
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(0.8deg);
+  }
 }
 
 /* What she is thinking about the section you are reading */
 .bubble {
-  order: -1;
   position: relative;
   padding: var(--space-3) var(--space-4);
   background: var(--surface);
@@ -32,6 +79,7 @@
   color: var(--ink);
   box-shadow: var(--shadow-card);
   animation: pop 320ms cubic-bezier(0.2, 1.2, 0.4, 1);
+  z-index: 2;
 }
 
 .bubble::after {
@@ -59,8 +107,9 @@
   }
 }
 
-/* Mood tints the bubble border so the state reads even before you read it */
-.wrap[data-face='happy'] .bubble {
+/* The bubble takes the colour of the state, so it reads before you read it */
+.wrap[data-face='happy'] .bubble,
+.wrap[data-face='relieved'] .bubble {
   border-color: var(--ok);
   color: var(--ok);
 }
@@ -72,145 +121,45 @@
   border-color: var(--bad);
   color: var(--bad);
 }
-.wrap[data-face='relieved'] .bubble {
-  border-color: var(--fresh);
-  color: var(--fresh);
+.wrap[data-face='relieved'] .bubble::after,
+.wrap[data-face='happy'] .bubble::after {
+  border-color: var(--ok);
+}
+.wrap[data-face='unsure'] .bubble::after {
+  border-color: var(--watch);
+}
+.wrap[data-face='alarmed'] .bubble::after {
+  border-color: var(--bad);
 }
 
-/* ── the pour, on a 6s loop ───────────────────────────────── */
-
-.glass,
-.glassPani,
-.stream,
-.level,
-.puri,
-.glassArm {
-  transform-box: fill-box;
+/* Alarmed gets a small jolt on arrival */
+.wrap[data-face='alarmed'] .active {
+  animation: jolt 420ms cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
-.glass {
-  transform-origin: 50% 90%;
-  animation: tip 6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
-}
-
-@keyframes tip {
-  0%,
-  8% {
-    transform: rotate(0deg);
+@keyframes jolt {
+  0% {
+    transform: translateX(0);
   }
-  20%,
-  58% {
-    transform: rotate(-58deg) translate(6px, 10px);
+  25% {
+    transform: translateX(-5px) rotate(-1deg);
   }
-  70%,
+  55% {
+    transform: translateX(4px) rotate(0.6deg);
+  }
   100% {
-    transform: rotate(0deg);
+    transform: none;
   }
-}
-
-.glassPani {
-  transform-origin: bottom;
-  animation: drain 6s ease-in-out infinite;
-}
-
-@keyframes drain {
-  0%,
-  16% {
-    transform: scaleY(1);
-  }
-  58% {
-    transform: scaleY(0.2);
-  }
-  74%,
-  100% {
-    transform: scaleY(1);
-  }
-}
-
-.stream {
-  transform-origin: top right;
-  animation: pour 6s ease-in-out infinite;
-}
-
-@keyframes pour {
-  0%,
-  18% {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-  24%,
-  56% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  62%,
-  100% {
-    opacity: 0;
-    transform: scale(0.4);
-  }
-}
-
-.level {
-  transform-origin: center;
-  animation: fill 6s cubic-bezier(0.35, 0, 0.3, 1) infinite;
-}
-
-@keyframes fill {
-  0%,
-  20% {
-    transform: translateY(6px) scale(0.4, 0.3);
-  }
-  56%,
-  86% {
-    transform: translateY(0) scale(1);
-  }
-  96%,
-  100% {
-    transform: translateY(6px) scale(0.4, 0.3);
-  }
-}
-
-.puri {
-  transform-origin: center;
-  animation: bob 6s ease-in-out infinite;
-}
-
-@keyframes bob {
-  0%,
-  20% {
-    transform: translateY(0);
-  }
-  26% {
-    transform: translateY(2px);
-  }
-  40%,
-  100% {
-    transform: translateY(0);
-  }
-}
-
-/* When she is alarmed she pulls the glass back a little */
-.wrap[data-face='alarmed'] .glassArm {
-  transform: translate(6px, -8px) rotate(4deg);
-}
-
-.glassArm {
-  transform-origin: 80% 20%;
-  transition: transform 400ms cubic-bezier(0.2, 1.1, 0.4, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glass {
-    transform: rotate(-58deg) translate(6px, 10px);
-  }
-  .stream {
-    opacity: 1;
-    transform: none;
-  }
-  .level {
-    transform: none;
-  }
-  .bubble {
+  .stage,
+  .bubble,
+  .wrap[data-face='alarmed'] .active {
     animation: none;
+  }
+  .pose {
+    transition: opacity 1ms;
+    transform: none;
   }
 }

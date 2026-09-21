@@ -103,4 +103,62 @@ real dataset yet, so every query is unproven.
 
 ---
 
-<!-- Next session: append "## Day 2 — …" here. Record prompts that failed too. -->
+## Day 2 — 20–21 Sep 2026 · Warm theme, a face for the site, and a hard lesson about drawing people
+
+**The theme.** The first palette was cool mint — wrong for a golgappa. Rebuilt the
+tokens from the stall itself: sand, tamarind, saffron, roasted brown, imli pani,
+fried puri. Front page rebuilt around the four state cards, the map, and "how a
+complaint becomes a warning".
+
+**The pour animation (kept, then replaced).** A pure SVG + CSS steel tumbler
+pouring into a golgappa. Two bugs worth recording: the stream was drawn *behind*
+the puri, so it never looked like it landed; and the first version arced in from
+the side when the brief was "pour straight in". Verified frames by pausing
+`document.getAnimations()` at exact timestamps instead of hoping a screenshot
+caught the right moment.
+
+**The girl — what failed.** Asked for an Indian college student in a sleeveless
+kurti and bangles, holding a golgappa and pouring pani into it, reacting to each
+section as you scroll. I hand-drew her in SVG over three passes. The face worked;
+the arms never did. Stroked limbs with separate hand shapes leave a lump where
+the outlines cross, and "draw each limb twice, dark underneath" only half fixed
+it. The honest conclusion: hand-authoring a natural human figure in raw SVG paths
+was past what I could do well, and I said so rather than keep iterating.
+
+**The girl — what worked.** Generated her instead (Higgsfield, `gpt_image_2`):
+
+1. One reference image from a detailed prompt (outfit, jewellery, pose, palette,
+   "correct five-fingered hands", "not photorealistic").
+2. Three more moods generated *from that image as a reference*, changing only
+   pose and expression — which is what kept her the same person.
+3. Backgrounds cut out locally with `sharp`: flood-fill from the border, clear
+   large enclosed white regions (gaps in the hair), keep small ones (eye whites,
+   teeth), then recolour the feathered edge from its darkest neighbour so there
+   is no white fringe on the dark theme. ~42 KB per pose as WebP.
+
+Tool friction, recorded because it cost real time: the tool's schema is opaque,
+so the call shape (`params: {model, prompt, …}`, reference as
+`medias: [{value, role}]`) was found by trial and error; `quality: high` needs a
+paid plan; the free plan allows one job at a time; and the account ran out of
+credits after four images. The fifth mood ("serious") reuses the focused pour
+pose, which fits the "somebody has to check first" line anyway.
+
+**Scroll behaviour.** Sections declare their metaphor with `data-mood`. First
+version used an IntersectionObserver and was silently stuck: the figure carried
+`data-mood` too, so the observer kept re-selecting her own mood. Then the footer
+never triggered because it is too short to reach mid-screen. Replaced both with
+one check per animation frame: at the very bottom the last section wins,
+otherwise whatever crosses the middle of the screen. Added a "When the golgappa
+bursts" section showing a sample confirmed alert — good content in its own right,
+and the place where she reacts in alarm.
+
+**Also this session:** Sanity project created and seeded (the first `sanity init`
+ran from the home folder; recovered the project id from the stray env file).
+
+**Still open:** the report form needs the write token pasted into `.env.local`
+(a token was pasted into chat — flagged it as compromised and asked for it to be
+revoked and replaced, not used).
+
+---
+
+<!-- Next session: append "## Day 3 — …" here. Record prompts that failed too. -->
