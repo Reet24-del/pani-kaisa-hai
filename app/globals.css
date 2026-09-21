@@ -76,6 +76,12 @@
   --chalk-dim: #c9c1b0;
   --wood: #6e421c;
   --wood-light: #8f5a2a;
+
+  /* the wall: block-print booti + paper grain, and the plank wall behind the board */
+  --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Cg fill='rgba(178,69,13,0.075)'%3E%3Ccircle cx='28' cy='28' r='3.2'/%3E%3Cellipse cx='28' cy='18' rx='3.2' ry='6.5'/%3E%3Cellipse cx='28' cy='38' rx='3.2' ry='6.5'/%3E%3Cellipse cx='18' cy='28' rx='6.5' ry='3.2'/%3E%3Cellipse cx='38' cy='28' rx='6.5' ry='3.2'/%3E%3Ccircle cx='84' cy='84' r='9'/%3E%3Ccircle cx='84' cy='28' r='2.2'/%3E%3Ccircle cx='28' cy='84' r='2.2'/%3E%3Ccircle cx='56' cy='56' r='1.6'/%3E%3C/g%3E%3Cellipse cx='84' cy='79' rx='4' ry='1.8' fill='rgba(74,42,9,0.10)'/%3E%3Ccircle cx='84' cy='28' r='7' fill='none' stroke='rgba(228,137,15,0.12)' stroke-width='1.4'/%3E%3Ccircle cx='28' cy='84' r='7' fill='none' stroke='rgba(228,137,15,0.12)' stroke-width='1.4'/%3E%3C/svg%3E");
+  --bg-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.29 0 0 0 0 0.16 0 0 0 0 0.04 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --plank-a: #a06a37;
+  --plank-b: #87562a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -118,6 +124,10 @@
 
     --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.4);
     --shadow-sheet: 0 10px 36px rgba(0, 0, 0, 0.55);
+    --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Cg fill='rgba(240,146,47,0.06)'%3E%3Ccircle cx='28' cy='28' r='3.2'/%3E%3Cellipse cx='28' cy='18' rx='3.2' ry='6.5'/%3E%3Cellipse cx='28' cy='38' rx='3.2' ry='6.5'/%3E%3Cellipse cx='18' cy='28' rx='6.5' ry='3.2'/%3E%3Cellipse cx='38' cy='28' rx='6.5' ry='3.2'/%3E%3Ccircle cx='84' cy='84' r='9'/%3E%3Ccircle cx='84' cy='28' r='2.2'/%3E%3Ccircle cx='28' cy='84' r='2.2'/%3E%3Ccircle cx='56' cy='56' r='1.6'/%3E%3C/g%3E%3Cellipse cx='84' cy='79' rx='4' ry='1.8' fill='rgba(0,0,0,0.25)'/%3E%3Ccircle cx='84' cy='28' r='7' fill='none' stroke='rgba(255,181,69,0.08)' stroke-width='1.4'/%3E%3Ccircle cx='28' cy='84' r='7' fill='none' stroke='rgba(255,181,69,0.08)' stroke-width='1.4'/%3E%3C/svg%3E");
+    --bg-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.85 0 0 0 0 0.6 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --plank-a: #4a2f17;
+    --plank-b: #3a2411;
   }
 }
 
@@ -155,6 +165,10 @@
   --fresh-soft: #10262b;
   --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.4);
   --shadow-sheet: 0 10px 36px rgba(0, 0, 0, 0.55);
+  --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Cg fill='rgba(240,146,47,0.06)'%3E%3Ccircle cx='28' cy='28' r='3.2'/%3E%3Cellipse cx='28' cy='18' rx='3.2' ry='6.5'/%3E%3Cellipse cx='28' cy='38' rx='3.2' ry='6.5'/%3E%3Cellipse cx='18' cy='28' rx='6.5' ry='3.2'/%3E%3Cellipse cx='38' cy='28' rx='6.5' ry='3.2'/%3E%3Ccircle cx='84' cy='84' r='9'/%3E%3Ccircle cx='84' cy='28' r='2.2'/%3E%3Ccircle cx='28' cy='84' r='2.2'/%3E%3Ccircle cx='56' cy='56' r='1.6'/%3E%3C/g%3E%3Cellipse cx='84' cy='79' rx='4' ry='1.8' fill='rgba(0,0,0,0.25)'/%3E%3Ccircle cx='84' cy='28' r='7' fill='none' stroke='rgba(255,181,69,0.08)' stroke-width='1.4'/%3E%3Ccircle cx='28' cy='84' r='7' fill='none' stroke='rgba(255,181,69,0.08)' stroke-width='1.4'/%3E%3C/svg%3E");
+  --bg-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.85 0 0 0 0 0.6 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --plank-a: #4a2f17;
+  --plank-b: #3a2411;
 }
 
 * {
@@ -168,7 +182,10 @@ body {
 }
 
 body {
-  background: var(--ground);
+  background-color: var(--ground);
+  background-image: var(--bg-grain), var(--bg-pattern);
+  background-size: 180px 180px, 112px 112px;
+  background-attachment: fixed, scroll;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 17px;

@@ -2,6 +2,7 @@
    both themes — it is an object, not a surface. */
 
 .frame {
+  position: relative;
   max-width: 860px;
   margin-inline: auto;
   padding: 14px;
@@ -13,6 +14,34 @@
     0 18px 40px rgba(40, 20, 4, 0.35),
     inset 0 2px 0 rgba(255, 255, 255, 0.12);
   transform: rotate(-0.6deg);
+}
+
+/* the nail it hangs from, and the cord up to it */
+.frame::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -34px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f0dcb4, #9a7a4c 60%, #4a3014);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.frame::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -29px;
+  width: 38%;
+  height: 31px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(to top left, transparent calc(50% - 1px), rgba(40, 20, 4, 0.6) 50%, transparent calc(50% + 1px)) left / 50% 100% no-repeat,
+    linear-gradient(to top right, transparent calc(50% - 1px), rgba(40, 20, 4, 0.6) 50%, transparent calc(50% + 1px)) right / 50% 100% no-repeat;
 }
 
 .board {

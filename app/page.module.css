@@ -726,3 +726,64 @@
     max-width: none;
   }
 }
+
+/* ── Walls behind sections ────────────────────────────────── */
+
+/* The chalkboard hangs on a plank wall that runs the full width, under the
+   girl in the rail — she stands in front of the stall wall. */
+.menuSection {
+  position: relative;
+  max-width: none;
+  margin: 0;
+  padding-inline: var(--space-4);
+  background:
+    /* plank seams every 58px */
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 2px, rgba(255, 255, 255, 0.05) 2px 3px, transparent 3px 58px),
+    /* fine vertical grain */
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 7px, rgba(255, 255, 255, 0.03) 7px 8px, transparent 8px 19px),
+    linear-gradient(180deg, var(--plank-a), var(--plank-b));
+  box-shadow:
+    inset 0 14px 18px -12px rgba(0, 0, 0, 0.45),
+    inset 0 -14px 18px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* A red caution band behind the alert preview: this is the serious part. */
+.burst {
+  position: relative;
+  max-width: none;
+  margin: 0;
+  isolation: isolate;
+}
+
+.burst::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(-45deg, var(--bad-soft) 0 22px, transparent 22px 44px);
+  opacity: 0.55;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.burst {
+  /* content is centred by the padding, so children keep the page's left edge */
+  padding-inline: max(var(--space-4), calc((100% - 1080px) / 2));
+}
+
+.burst > .alertCard {
+  max-width: 620px;
+}
+
+@media (min-width: 1180px) {
+  .menuSection {
+    margin: 0;
+    padding-right: calc(340px + var(--space-4));
+  }
+
+  .burst {
+    margin: 0;
+    padding-left: max(var(--space-4), calc((100% - 340px - 1080px) / 2));
+    padding-right: calc(340px + max(var(--space-4), calc((100% - 340px - 1080px) / 2)));
+  }
+}
