@@ -88,13 +88,17 @@ Two grounds (light/dark) plus four **state colours** that are semantic and never
 
 ## 4. Typography
 
-Both faces support Latin **and** Devanagari, so Hindi never falls back to a system font.
+Every face supports Latin **and** Devanagari, so Hindi never falls back to a system font.
 
 | Role | Face | Usage |
 |---|---|---|
-| Display | **Baloo 2** (600/700) | Page titles, state names, the wordmark. Rounded and friendly, matching the golgappa. |
-| Body / UI | **Hind** (400/600) | Everything else. Designed for Indian-language UIs, very legible at small sizes. |
-| Data | **IBM Plex Mono** (400/500) | Readings, scores, IDs, timestamps. Always `font-variant-numeric: tabular-nums`. |
+| Display | **Baloo 2** (600/700) | Section titles, state names, the wordmark. |
+| Signboard | **Rozha One** | The hero question only, and the huge painted पानी behind it — the hand-painted stall sign. |
+| Chalk | **Kalam** (400/700) | The chalkboard menu only. |
+| Body / UI | **Hind** (400/600) | Everything else. Designed for Indian-language UIs. |
+| Data | **IBM Plex Mono** (400/500) | Readings, scores, the LED ticker. Always `tabular-nums`. |
+
+Rozha and Kalam are *props*, not system fonts: each belongs to one object on the landing page (the sign, the board) and nowhere else.
 
 ```
 Scale (rem)   0.75  0.875  1  1.125  1.375  1.75  2.25
@@ -105,7 +109,15 @@ Measure       60–70 characters max for reading text
 
 Uppercase labels get `letter-spacing: .07em`. Never uppercase Devanagari.
 
----
+### The stall (landing page only)
+
+The landing page is dressed as a golgappa thela; the working screens (report, area, control room) are not.
+
+- **Awning** — 28px saffron/cream stripes, a scalloped hem, a string of bunting. CSS only.
+- **Signboard** — the hero question in Rozha One, with पानी painted huge and faint on the wall behind it.
+- **LED ticker** — every area's live state scrolling past, amber on near-black, state words glowing in their own colour. Pauses on hover and under reduced motion.
+- **Chalkboard menu** — the four states on slate in a wooden frame, with a dotted leader to the action, the way a stall lists prices.
+- **Shake the golgappa** — the real `scoreReports` running on made-up signals. It turns soggy on its own; it never turns red without the "health worker confirms" button.
 
 ## 5. The golgappa glyph system
 

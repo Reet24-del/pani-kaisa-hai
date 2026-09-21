@@ -671,3 +671,58 @@
     max-width: none;
   }
 }
+
+/* ── The stall ────────────────────────────────────────────── */
+
+/* The hero sits under the awning; a huge faint पानी is painted on the wall
+   behind the headline, the way stalls paint their names. */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.paint {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 0;
+  transform: translateY(-58%) rotate(-4deg);
+  font-family: var(--font-sign);
+  font-size: clamp(8rem, 26vw, 19rem);
+  line-height: 1;
+  color: var(--saffron);
+  opacity: 0.09;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Hand-painted signboard lettering for the big question */
+.h1 {
+  font-family: var(--font-sign);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.menuSection,
+.simSection {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: var(--space-4);
+  padding-block: var(--space-7);
+}
+
+.menuSection {
+  padding-block: var(--space-8) var(--space-7);
+}
+
+@media (min-width: 1180px) {
+  .menuSection,
+  .simSection {
+    --gutter: max(var(--space-4), calc((100% - 340px - 1080px) / 2));
+    margin-left: var(--gutter);
+    margin-right: calc(340px + var(--gutter));
+    max-width: none;
+  }
+}

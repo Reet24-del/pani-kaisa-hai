@@ -3,7 +3,11 @@ import Link from 'next/link'
 import {Golgappa} from '@/components/Golgappa'
 import {MapPanel} from '@/components/MapPanel'
 import {PaniGirl} from '@/components/PaniGirl'
-import {STATE_LABEL, STATE_MEANING, STATE_ORDER, type AreaState} from '@/lib/states'
+import {AreaTicker} from '@/components/stall/AreaTicker'
+import {Awning} from '@/components/stall/Awning'
+import {MenuBoard} from '@/components/stall/MenuBoard'
+import {ScoreSimulator} from '@/components/stall/ScoreSimulator'
+import {STATE_LABEL, STATE_ORDER, type AreaState} from '@/lib/states'
 import {fetchSanity, sanityConfigured} from '@/sanity/lib/fetch'
 import {AREAS_QUERY} from '@/sanity/lib/queries'
 
@@ -20,20 +24,6 @@ type AreaRow = {
   lat: number
   lng: number
   radiusM?: number
-}
-
-const STATE_ACTION: Record<AreaState, string> = {
-  crisp: 'Drink as usual.',
-  soggy: 'Boil for one minute first.',
-  phoot: 'Do not drink the tap water.',
-  fresh: 'Fixed. Stay careful a few more days.',
-}
-
-const STATE_TRIGGER: Record<AreaState, string> = {
-  crisp: 'Nothing reported here recently.',
-  soggy: 'Three or more signals in 72 hours. Automatic — no one has to wait for a person.',
-  phoot: 'A health worker checked the evidence and confirmed it. Never automatic.',
-  fresh: 'The repair was recorded. Back to crisp after five quiet days.',
 }
 
 export default async function Home() {
@@ -77,8 +67,13 @@ export default async function Home() {
 
       <p className={styles.sample}>Sample data — demo build</p>
 
+      <Awning />
+
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className={styles.hero} data-mood="pour">
+        <span className={styles.paint} aria-hidden="true" lang="hi">
+          पानी
+        </span>
         <div className={styles.heroText}>
           <p className={styles.kicker}>{city ? `${city} · live` : 'Live neighbourhood water watch'}</p>
           <h1 className={styles.h1}>
@@ -107,25 +102,11 @@ export default async function Home() {
         </div>
       </section>
 
+      <AreaTicker areas={areas ?? []} />
+
       {/* ── The four states ──────────────────────────────────── */}
-      <section className={styles.states} data-mood="happy" aria-labelledby="states-title">
-        <h2 id="states-title" className={styles.h2}>
-          Every neighbourhood is a golgappa
-        </h2>
-        <p className={styles.sectionLede}>
-          The shape tells you the state before the colour does — crisp, soggy, burst, fresh.
-        </p>
-        <ul className={styles.stateGrid}>
-          {STATE_ORDER.map((state) => (
-            <li key={state} className={`${styles.stateCard} ${styles[state]}`}>
-              <Golgappa state={state} size={56} />
-              <h3 className={styles.stateName}>{STATE_LABEL[state]}</h3>
-              <p className={styles.stateMeaning}>{STATE_MEANING[state]}</p>
-              <p className={styles.stateAction}>{STATE_ACTION[state]}</p>
-              <p className={styles.stateTrigger}>{STATE_TRIGGER[state]}</p>
-            </li>
-          ))}
-        </ul>
+      <section className={styles.menuSection} data-mood="happy" aria-label="What each golgappa means">
+        <MenuBoard />
       </section>
 
       {/* ── Map + areas ──────────────────────────────────────── */}
@@ -181,6 +162,19 @@ export default async function Home() {
             )}
           </>
         )}
+      </section>
+
+      {/* ── Shake the golgappa ───────────────────────────────── */}
+      <section className={styles.simSection} data-mood="serious" aria-labelledby="sim-title">
+        <p className={styles.kicker}>Try it</p>
+        <h2 id="sim-title" className={styles.h2}>
+          Shake the golgappa
+        </h2>
+        <p className={styles.sectionLede}>
+          Pile on the signals and watch what happens. This runs the same scoring code the app
+          uses — and notice the one step it will never take by itself.
+        </p>
+        <ScoreSimulator />
       </section>
 
       {/* ── What an alert looks like ─────────────────────────── */}

@@ -64,6 +64,18 @@
   --font-display: var(--font-baloo), "Segoe UI", system-ui, sans-serif;
   --font-body: var(--font-hind), "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, Menlo, Consolas, monospace;
+  --font-sign: var(--font-rozha), Georgia, serif;
+  --font-chalk: var(--font-kalam), "Comic Sans MS", cursive;
+
+  /* the stall: awning stripes, slate board, wooden frame */
+  --awning-a: #e4890f;
+  --awning-b: #fff2dc;
+  --slate: #26302a;
+  --slate-deep: #1c241f;
+  --chalk: #f3ecdc;
+  --chalk-dim: #c9c1b0;
+  --wood: #6e421c;
+  --wood-light: #8f5a2a;
 }
 
 @media (prefers-color-scheme: dark) {

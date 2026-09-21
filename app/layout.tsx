@@ -1,5 +1,5 @@
 import type {Metadata} from 'next'
-import {Baloo_2, Hind, IBM_Plex_Mono} from 'next/font/google'
+import {Baloo_2, Hind, IBM_Plex_Mono, Kalam, Rozha_One} from 'next/font/google'
 
 import './globals.css'
 
@@ -16,6 +16,22 @@ const hind = Hind({
   variable: '--font-hind',
   subsets: ['latin', 'devanagari'],
   weight: ['400', '600'],
+  display: 'swap',
+})
+
+// Two display faces used sparingly, both with Devanagari: Rozha One for the
+// hand-painted stall signboard, Kalam for the chalkboard menu.
+const rozha = Rozha_One({
+  variable: '--font-rozha',
+  subsets: ['latin', 'devanagari'],
+  weight: '400',
+  display: 'swap',
+})
+
+const kalam = Kalam({
+  variable: '--font-kalam',
+  subsets: ['latin', 'devanagari'],
+  weight: ['400', '700'],
   display: 'swap',
 })
 
@@ -41,7 +57,7 @@ export default async function RootLayout({children}: LayoutProps<'/'>) {
     : null
 
   return (
-    <html lang="en" className={`${baloo.variable} ${hind.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${baloo.variable} ${hind.variable} ${plexMono.variable} ${rozha.variable} ${kalam.variable}`}>
       <body>
         {children}
         {SanityLive ? <SanityLive /> : null}

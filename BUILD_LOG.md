@@ -161,4 +161,27 @@ revoked and replaced, not used).
 
 ---
 
-<!-- Next session: append "## Day 3 — …" here. Record prompts that failed too. -->
+## Day 3 — 21 Sep 2026 · Dressing the landing page as a stall
+
+Feedback: the character was right, but the page still read like a SaaS
+template. Rebuilt it as a golgappa thela:
+
+- **Awning** with scalloped hem and bunting over the hero, pure CSS.
+- **Signboard headline** in Rozha One, with पानी painted huge and faint behind it.
+- **LED ticker** reading every area's live state off Sanity.
+- **Chalkboard menu** replacing the four state cards — "Aaj ka menu", in Kalam,
+  with the action where a price would be.
+- **Shake the golgappa**: a simulator that runs the real `scoreReports` from
+  `lib/risk.ts` on made-up reports. The point it makes is the product's rule:
+  signals can make the golgappa soggy on their own, but only the "health worker
+  confirms" button turns it red, and changing the evidence afterwards
+  un-confirms it.
+
+**Bug caught by clicking, not by reading:** scripted three fast clicks on "+"
+and the simulator counted two — the stepper computed `value + 1` from a stale
+render. Switched to functional updates; three fast clicks now reach soggy as
+they should.
+
+---
+
+<!-- Next session: append "## Day 4 — …" here. Record prompts that failed too. -->
