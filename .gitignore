@@ -47,3 +47,6 @@ seed.ndjson
 # control room app has its own lockfile-managed deps
 control-room/node_modules
 control-room/dist
+
+# Share setup placeholders, never local credentials
+!.env.example

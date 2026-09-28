@@ -185,3 +185,10 @@ they should.
 ---
 
 <!-- Next session: append "## Day 4 — …" here. Record prompts that failed too. -->
+
+## 28 Sep 2026 · Prepare separate GitHub repository
+
+Preserved the existing commit history in a source-only publishing copy. Added the
+placeholder `.env.example` to version control so the documented setup works from a
+fresh clone. Kept local credentials, dependencies and generated build files out.
+No application behavior changed.
