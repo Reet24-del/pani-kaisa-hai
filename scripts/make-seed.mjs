@@ -66,7 +66,7 @@ docs.push(
     permissibleMax: 1,
     healthNote:
       'Below 0.2 mg/L the supply is no longer protected, so anything entering the pipe survives.',
-    citation: 'IS 10500:2012, Table 1',
+    citation: 'IS 10500:2012, Table 2 (min 0.2, permissible 1)',
   },
   {
     _id: 'limit-ecoli',
@@ -76,7 +76,7 @@ docs.push(
     unit: '',
     rule: 'absent',
     healthNote: 'Direct evidence of faecal contamination. Any detection goes straight to a verifier.',
-    citation: 'IS 10500:2012 — shall not be detectable in any 100 mL sample',
+    citation: 'IS 10500:2012, Table 6 — shall not be detectable in any 100 mL sample',
   },
   {
     _id: 'limit-coliform',
@@ -86,7 +86,7 @@ docs.push(
     unit: '',
     rule: 'absent',
     healthNote: 'Shows the supply is open to contamination somewhere along the line.',
-    citation: 'IS 10500:2012 — shall not be detectable in any 100 mL sample',
+    citation: 'IS 10500:2012, Table 6 — shall not be detectable in any 100 mL sample',
   },
 )
 

@@ -75,7 +75,7 @@ export default async function Home() {
           पानी
         </span>
         <div className={styles.heroText}>
-          <p className={styles.kicker}>{city ? `${city} · live` : 'Live neighbourhood water watch'}</p>
+          <p className={styles.kicker}>{city ? `${city} · demo` : 'Neighbourhood water watch'}</p>
           <h1 className={styles.h1}>
             Before the first bite, everyone asks: <em>is this pani clean?</em>
           </h1>

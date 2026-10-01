@@ -207,3 +207,24 @@ and `vercel.json` ran `/api/cron/tick` every 15 minutes. Moved it to once a day
 (00:30 UTC, 06:00 IST). The tick only closes quiet cases and returns recovered
 areas to Crisp, so a daily pass is enough for the demo; hit the route by hand
 to run it sooner.
+
+## 1 Oct 2026 · Checking the IS 10500 numbers
+
+The Day 1 note said the limits were written from memory. Checked them against
+IS 10500:2012 (Ahmedabad Municipal Corporation's copy of the table, cross-read
+with a lab's summary): every value was right — pH 6.5–8.5, TDS 500/2000 mg/L,
+turbidity 1/5 NTU, free residual chlorine min 0.2 / permissible 1 mg/L, E. coli
+and total coliform not detectable in 100 mL. Two **citations** were wrong:
+chlorine is in Table 2 (general parameters), not Table 1, and the bacteria are in
+Table 6. Fixed in the seed; `scripts/fix-citations.mjs` patches the three
+documents already in the dataset without re-importing.
+
+Also changed the hero kicker from "Indore · live" to "Indore · demo". The page
+reads live from Sanity, but every area is sample data, and the banner right above
+it already says so. Two labels disagreeing on the first screen was worse than
+either one.
+
+First look at the live site in a browser: the map, area pages, four-step report
+form and the score simulator all work. Report submission fails until the write
+token is set in Vercel, and Sanity Live is blocked by CORS until the Vercel
+origin is registered.
