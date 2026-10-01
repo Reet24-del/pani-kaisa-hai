@@ -228,3 +228,14 @@ First look at the live site in a browser: the map, area pages, four-step report
 form and the score simulator all work. Report submission fails until the write
 token is set in Vercel, and Sanity Live is blocked by CORS until the Vercel
 origin is registered.
+
+## 2 Oct 2026 · Wiring the live site to write
+
+- Added `https://pani-kaisa-hai.vercel.app` as a CORS origin (credentials on) in
+  the Sanity project, so Sanity Live and the embedded Studio work on the deploy.
+  The Studio's own "Register Studio" button tried to open sanity.io in a popup,
+  which the browser blocked, so the origin went in by hand under API → CORS.
+- Set `SANITY_API_WRITE_TOKEN` in Vercel (Production). The first redeploy after
+  adding it still answered every report with `Missing SANITY_API_WRITE_TOKEN`:
+  Vercel bakes env vars into a deployment when it builds, and that redeploy had
+  started before the variable was saved. A fresh build fixes it.
