@@ -192,3 +192,14 @@ Preserved the existing commit history in a source-only publishing copy. Added th
 placeholder `.env.example` to version control so the documented setup works from a
 fresh clone. Kept local credentials, dependencies and generated build files out.
 No application behavior changed.
+
+## 1 Oct 2026 · First Vercel deploy
+
+Imported the repository into Vercel (Next.js preset, repo root) with the three
+public Sanity variables: project `ya4g5th1`, dataset `production`, API version
+`2026-09-20`. Confirmed the dataset answers public queries: 28 seed documents,
+10 areas (all Crisp), 6 IS 10500 limits, no reports yet.
+
+Not set yet: `SANITY_API_WRITE_TOKEN` (needed before reports and verifier
+decisions can save) and `CONTROL_ROOM_PASSPHRASE` (falls back to the demo
+passphrase). `vercel.json` already schedules `/api/cron/tick` every 15 minutes.
