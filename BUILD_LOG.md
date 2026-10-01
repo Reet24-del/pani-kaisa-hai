@@ -202,4 +202,8 @@ public Sanity variables: project `ya4g5th1`, dataset `production`, API version
 
 Not set yet: `SANITY_API_WRITE_TOKEN` (needed before reports and verifier
 decisions can save) and `CONTROL_ROOM_PASSPHRASE` (falls back to the demo
-passphrase). `vercel.json` already schedules `/api/cron/tick` every 15 minutes.
+passphrase). The first build was refused: Vercel's Hobby plan only allows daily cron jobs,
+and `vercel.json` ran `/api/cron/tick` every 15 minutes. Moved it to once a day
+(00:30 UTC, 06:00 IST). The tick only closes quiet cases and returns recovered
+areas to Crisp, so a daily pass is enough for the demo; hit the route by hand
+to run it sooner.
