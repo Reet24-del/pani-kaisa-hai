@@ -239,3 +239,10 @@ origin is registered.
   adding it still answered every report with `Missing SANITY_API_WRITE_TOKEN`:
   Vercel bakes env vars into a deployment when it builds, and that redeploy had
   started before the variable was saved. A fresh build fixes it.
+
+Copy-pasting the token by hand went wrong twice: once with stray text (an
+arrow character broke the Authorization header), once with a key Sanity didn't
+recognise (`Unauthorized - Session not found`). Replaced the copy-paste with
+`scripts/rotate-write-token.sh`, which creates the token with `sanity tokens
+add` and pipes it straight into `vercel env add` and `.env.local`, so the key is
+never on screen or on the clipboard.
