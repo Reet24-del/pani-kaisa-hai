@@ -321,3 +321,43 @@ is also a test that scans every GROQ string for a date field compared without
 
 What I can't verify from here: the App SDK app is typechecked against
 `@sanity/sdk` 3.7 but has not been run in the Dashboard.
+
+---
+
+## 3 Oct 2026, evening · A pre-submission check from a stale copy
+
+Asked a local Claude Code session "what is left", then to work through the list
+one item at a time. The session read the project folder on this Mac. That
+folder had no git remote and stopped at 21 Sep. All the work since then was in
+the GitHub repo, made in cloud sessions. So the first summary was confidently
+wrong: no repo, no deploy log, last commit 21 Sep. The mistake surfaced only
+when a CLI deploy was **blocked** by Vercel. Comparing that deploy's metadata
+with the live one showed the live site builds from `Reet24-del/pani-kaisa-hai`
+through the Git integration.
+
+The block was lucky. It happened because the local commits were authored with
+an email that isn't the Vercel account's, and Hobby refuses those deploys.
+Without it, a CLI deploy from the stale folder would have replaced today's
+fixes with 21 Sep code. Lesson: before acting on a project, check `git remote
+-v`, and if it's empty, ask where the real repo lives.
+
+What was still worth keeping:
+
+- **`/api/cron/tick` was open to anyone.** A plain unauthenticated GET returned
+  200 and ran the tick. The secret check only ran *if* `CRON_SECRET` was set,
+  and it wasn't set on Vercel. The tick only does the nightly job, so nothing
+  was harmed, but anyone could trigger writes on demand. `CRON_SECRET` is now
+  set in Vercel, and the route refuses on any deployment when it is missing, so
+  a forgotten env var fails closed instead of open.
+- **`scripts/fix-citations.mjs` had never been run.** The live `safetyLimit`
+  documents still cited Table 1 for chlorine until it ran on 3 Oct. They now
+  cite Tables 2 and 6.
+- **The two pre-rotation write tokens were still active.** `vercel-write` and
+  `vercel-write-2` were deleted. `vercel-write-20261002-1016` is the only
+  Editor token left.
+- The AI summary now defaults to Claude Opus 5.5. `claude-opus-5` still works,
+  but 5.5 is current and cheaper. With no `ANTHROPIC_API_KEY` set, the site
+  keeps using the plain summary built from the numbers.
+
+Refused by the agent's permission guard, and left to a person: running the
+citation fix against production, and rewriting commit authors.
