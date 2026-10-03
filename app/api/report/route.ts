@@ -4,6 +4,7 @@ import {NextResponse} from 'next/server'
 import {cookies} from 'next/headers'
 
 import {areaForPoint, type PlaceableArea} from '@/lib/geo'
+import {cleanReport, coarsen, privateContactId, type RawReport} from '@/lib/reportInput'
 import {intakeReport} from '@/sanity/lib/cases'
 import {getWriteClient} from '@/sanity/lib/client'
 
@@ -13,68 +14,55 @@ import {getWriteClient} from '@/sanity/lib/client'
  * The write token lives here, never in the browser. Everything a resident sends
  * is treated as untrusted: fields are whitelisted, numbers are clamped, and the
  * device is rate limited by a salted hash — we never store an IP address.
+ * The rules themselves live in lib/reportInput.ts, where they are tested.
  */
-
-const SIGNS = ['smell', 'colour', 'taste', 'particles'] as const
-const SOURCES = ['pipeline', 'borewell', 'tanker', 'ro', 'unknown'] as const
-const METHODS = ['strip', 'meter', 'lab'] as const
 
 const DEVICE_COOKIE = 'pkh_device'
 const MAX_REPORTS_PER_AREA_PER_DAY = 3
 
-type Body = {
-  lat?: number
-  lng?: number
-  areaId?: string
-  sourceKind?: string
-  waterSigns?: string[]
-  households?: number
-  people?: number
-  symptoms?: string[]
-  readings?: {parameterId?: string; value?: number; detected?: boolean; method?: string}[]
-  contact?: {phone?: string; email?: string}
-}
-
 export async function POST(request: Request) {
-  let body: Body
+  let body: RawReport
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({error: 'Send JSON.'}, {status: 400})
   }
 
-  const lat = Number(body.lat)
-  const lng = Number(body.lng)
-  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
-    return NextResponse.json({error: 'Pick where you are first.'}, {status: 400})
-  }
-
-  const waterSigns = (body.waterSigns ?? []).filter((s): s is (typeof SIGNS)[number] =>
-    (SIGNS as readonly string[]).includes(s),
-  )
-  const people = clamp(body.people, 0, 200)
-  const households = clamp(body.households, 0, 100)
-
-  if (waterSigns.length === 0 && people === 0) {
+  try {
+    return await accept(body)
+  } catch (error) {
+    // Always answer in JSON, so the form can show a real message instead of
+    // "no connection".
+    console.error('[report] failed:', error)
     return NextResponse.json(
-      {error: 'Tell us at least one thing you noticed, or how many people are ill.'},
-      {status: 400},
+      {error: 'Could not save the report just now. Please try again in a minute.'},
+      {status: 500},
     )
   }
+}
 
-  const sourceKind = (SOURCES as readonly string[]).includes(body.sourceKind ?? '')
-    ? body.sourceKind!
-    : 'unknown'
-
+async function accept(body: RawReport) {
   const client = getWriteClient()
 
-  // Which area is this? An explicit pick wins; otherwise the point decides.
-  const areas = await client.fetch<PlaceableArea[]>(
-    `*[_type == "area"]{_id, name, "slug": slug.current, "lat": centre.lat, "lng": centre.lng, radiusM}`,
+  // Which areas and which limits exist? Readings may only point at real limits.
+  const known = await client.fetch<{areas: PlaceableArea[]; parameterIds: string[]}>(
+    `{
+      "areas": *[_type == "area"]{_id, name, "slug": slug.current, "lat": centre.lat, "lng": centre.lng, radiusM},
+      "parameterIds": *[_type == "safetyLimit"]._id
+    }`,
   )
-  const matched = body.areaId
-    ? (areas.find((a) => a._id === body.areaId) ?? null)
-    : areaForPoint({lat, lng}, areas)
+
+  const cleaned = cleanReport(body, {parameterIds: known.parameterIds ?? []})
+  if (!cleaned.ok) {
+    return NextResponse.json({error: cleaned.error}, {status: 400})
+  }
+  const input = cleaned.report
+
+  // An explicit pick wins; otherwise the point decides.
+  const areas = known.areas ?? []
+  const matched = input.areaId
+    ? (areas.find((a) => a._id === input.areaId) ?? null)
+    : areaForPoint({lat: input.lat, lng: input.lng}, areas)
 
   // Rate limit per device per area. Three taps from one phone is one person.
   const jar = await cookies()
@@ -100,36 +88,31 @@ export async function POST(request: Request) {
     }
   }
 
-  const readings = (body.readings ?? [])
-    .filter((r) => r.parameterId && (typeof r.value === 'number' || typeof r.detected === 'boolean'))
-    .slice(0, 6)
-    .map((r, i) => ({
-      _type: 'reading',
-      _key: `reading-${i}`,
-      parameter: {_type: 'reference', _ref: r.parameterId},
-      ...(typeof r.value === 'number' ? {value: r.value} : {}),
-      ...(typeof r.detected === 'boolean' ? {detected: r.detected} : {}),
-      method: (METHODS as readonly string[]).includes(r.method ?? '') ? r.method : 'strip',
-    }))
-
-  const doc = await client.create({
+  const reportId = `report-${randomUUID()}`
+  const tx = client.transaction().create({
+    _id: reportId,
     _type: 'report',
     ...(matched ? {area: {_type: 'reference', _ref: matched._id}} : {}),
-    location: {_type: 'geopoint', lat, lng},
-    sourceKind,
-    waterSigns,
-    illness: {
-      households: households || (people > 0 ? 1 : 0),
-      people,
-      symptoms: (body.symptoms ?? []).slice(0, 4),
-    },
-    ...(readings.length ? {readings} : {}),
+    // Rounded: the exact point is used above to find the area, then dropped.
+    location: {_type: 'geopoint', lat: coarsen(input.lat), lng: coarsen(input.lng)},
+    sourceKind: input.sourceKind,
+    waterSigns: input.waterSigns,
+    illness: {households: input.households, people: input.people, symptoms: input.symptoms},
+    ...(input.readings.length ? {readings: input.readings} : {}),
     submittedAt: new Date().toISOString(),
     deviceHash,
-    ...(body.contact?.phone || body.contact?.email
-      ? {contact: {phone: body.contact.phone, email: body.contact.email}}
-      : {}),
   })
+  if (input.contact) {
+    // Kept off the report, in a document the public API does not return.
+    tx.create({
+      _id: privateContactId(reportId),
+      _type: 'reporterContact',
+      report: {_type: 'reference', _ref: reportId, _weak: true},
+      ...input.contact,
+    })
+  }
+  await tx.commit()
+  const doc = {_id: reportId}
 
   // Score it straight away so the resident sees an honest state on the next screen.
   let caseId: string | undefined
@@ -158,12 +141,6 @@ export async function POST(request: Request) {
   }
 
   return response
-}
-
-function clamp(value: unknown, min: number, max: number): number {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return 0
-  return Math.min(max, Math.max(min, Math.round(n)))
 }
 
 /** Salted so the stored hash cannot be walked back to the cookie value. */

@@ -5,6 +5,7 @@ import {alertType} from './alert'
 import {areaType} from './area'
 import {contactType} from './contact'
 import {reportType} from './report'
+import {reporterContactType} from './reporterContact'
 import {riskSettingsType} from './riskSettings'
 import {safetyLimitType} from './safetyLimit'
 import {waterCaseType} from './waterCase'
@@ -17,6 +18,7 @@ export const schema: {types: SchemaTypeDefinition[]} = {
     waterSourceType,
     // Evidence
     reportType,
+    reporterContactType,
     // Decisions
     waterCaseType,
     alertType,

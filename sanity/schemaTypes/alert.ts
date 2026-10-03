@@ -63,8 +63,23 @@ export const alertType = defineType({
       description: 'No alert exists without a named human.',
       validation: (rule) => rule.required(),
     }),
+    defineField({
+      name: 'reason',
+      title: 'Why it was confirmed',
+      type: 'text',
+      rows: 3,
+      description: 'Written by the verifier, shown on the public area page next to their name.',
+      validation: (rule) => rule.required().min(10),
+    }),
     defineField({name: 'notifiedAt', title: 'Municipality notified at', type: 'datetime'}),
     defineField({name: 'resolvedAt', type: 'datetime'}),
+    defineField({
+      name: 'resolvedBy',
+      title: 'Marked fixed by',
+      type: 'reference',
+      to: [{type: 'contact'}],
+      hidden: ({document}) => !document?.resolvedAt,
+    }),
     defineField({name: 'resolutionNote', type: 'text', rows: 2}),
   ],
   preview: {

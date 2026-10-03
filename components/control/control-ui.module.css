@@ -251,3 +251,24 @@
 .primary:disabled {
   opacity: 0.4;
 }
+
+.testing {
+  margin: 0.4rem 0 0;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  background: var(--watch-soft);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.resolve {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.resolve summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}

@@ -1,19 +1,23 @@
 import {cookies} from 'next/headers'
 
+import Link from 'next/link'
+
 import {CaseCard} from '@/components/control/CaseCard'
+import {ResolveAlert} from '@/components/control/ResolveAlert'
 import {SignIn} from '@/components/control/SignIn'
 import {VerifierPicker} from '@/components/control/VerifierPicker'
 import {Golgappa} from '@/components/Golgappa'
 import {fetchSanity, sanityConfigured} from '@/sanity/lib/fetch'
 
+import {signOut} from './actions'
 import styles from './control.module.css'
 
 export const dynamic = 'force-dynamic'
 
 const QUEUE = `{
-  "needsVerification": *[_type == "waterCase" && status == "needsVerification"]
-    | order(riskScore desc, openedAt asc){
-      _id, riskScore, scoreBreakdown, aiSummary, status, openedAt,
+  "needsVerification": *[_type == "waterCase" && status in ["needsVerification", "testRequested"]]
+    | order(status asc, riskScore desc, openedAt asc){
+      _id, riskScore, scoreBreakdown, aiSummary, status, openedAt, decisionReason,
       "area": area->{_id, name, "slug": slug.current, state},
       "claimedBy": claimedBy->{name},
       "suspectedSource": suspectedSource->{name, kind},
@@ -27,7 +31,7 @@ const QUEUE = `{
     _id, riskScore, scoreBreakdown, "area": area->{name, "slug": slug.current}
   },
   "alerts": *[_type == "alert" && !defined(resolvedAt)] | order(issuedAt desc){
-    _id, issuedAt, "area": area->{name}, "verifiedBy": verifiedBy->{name}
+    _id, issuedAt, reason, "area": area->{name, "slug": slug.current}, "verifiedBy": verifiedBy->{name}
   },
   "verifiers": *[_type == "contact" && canVerify == true]{_id, name, role}
 }`
@@ -35,7 +39,13 @@ const QUEUE = `{
 type Queue = {
   needsVerification: CaseRow[]
   watch: {_id: string; riskScore: number; scoreBreakdown?: string; area?: {name: string; slug: string}}[]
-  alerts: {_id: string; issuedAt: string; area?: {name: string}; verifiedBy?: {name: string}}[]
+  alerts: {
+    _id: string
+    issuedAt: string
+    reason?: string
+    area?: {name: string; slug: string}
+    verifiedBy?: {name: string}
+  }[]
   verifiers: {_id: string; name: string; role: string}[]
 }
 
@@ -46,6 +56,7 @@ export type CaseRow = {
   aiSummary?: string
   status: string
   openedAt?: string
+  decisionReason?: string
   area?: {_id: string; name: string; slug: string; state: string}
   claimedBy?: {name: string}
   suspectedSource?: {name: string; kind: string}
@@ -71,7 +82,21 @@ export type CaseRow = {
   }[]
 }
 
-export default async function ControlRoom() {
+const DONE_TEXT: Record<string, string> = {
+  confirmed: 'Confirmed. The area is now Phoot gaya and residents see the alert with your name and reason.',
+  dismissed: 'Dismissed. The reports stay on record; the area goes back to what the remaining evidence says.',
+  test: 'Test requested. The area stays Soggy and the case waits here until the result is in.',
+  fixed: 'Marked fixed. The area is now a Fresh batch and returns to Crisp after the quiet period.',
+}
+
+export default async function ControlRoom({
+  searchParams,
+}: {
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>
+}) {
+  const params = await searchParams
+  const done = typeof params.done === 'string' ? DONE_TEXT[params.done] : undefined
+  const doneArea = typeof params.area === 'string' ? params.area : undefined
   const jar = await cookies()
   const signedIn = jar.get('pkh_control')?.value === (process.env.CONTROL_ROOM_PASSPHRASE || 'pani-demo')
   const verifierId = jar.get('pkh_verifier')?.value ?? null
@@ -89,7 +114,9 @@ export default async function ControlRoom() {
   }
 
   const queue = await fetchSanity<Queue>(QUEUE)
-  const cases = queue?.needsVerification ?? []
+  const allCases = queue?.needsVerification ?? []
+  const cases = allCases.filter((c) => c.status === 'needsVerification')
+  const testing = allCases.filter((c) => c.status === 'testRequested')
   const verifier = queue?.verifiers.find((v) => v._id === verifierId) ?? null
 
   return (
@@ -99,13 +126,27 @@ export default async function ControlRoom() {
           <Golgappa state="soggy" size={28} />
           Control Room
         </span>
-        <VerifierPicker verifiers={queue?.verifiers ?? []} current={verifier} />
+        <span className={styles.barRight}>
+          <VerifierPicker verifiers={queue?.verifiers ?? []} current={verifier} />
+          <form action={signOut}>
+            <button type="submit" className={styles.signOut}>
+              Sign out
+            </button>
+          </form>
+        </span>
       </header>
+
+      {done ? (
+        <p className={styles.done} role="status">
+          {done}{' '}
+          {doneArea ? <Link href={`/area/${doneArea}`}>See the public page →</Link> : null}
+        </p>
+      ) : null}
 
       <p className={styles.note}>
         Web version, so it can be tested without a Sanity login. The App SDK app in{' '}
         <code>control-room/</code> is the same queue inside the Sanity Dashboard, and both call the
-        same code — only a person can confirm or dismiss.
+        same rules: only a person can confirm or dismiss.
       </p>
 
       <main className={styles.main}>
@@ -124,6 +165,21 @@ export default async function ControlRoom() {
               ))}
             </ul>
           )}
+
+          {testing.length > 0 ? (
+            <>
+              <h2 className={styles.h1}>
+                Waiting on a lab test <span className={styles.count}>{testing.length}</span>
+              </h2>
+              <ul className={styles.list}>
+                {testing.map((row) => (
+                  <li key={row._id}>
+                    <CaseCard row={row} canDecide={Boolean(verifier)} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
         </section>
 
         <aside className={styles.side}>
@@ -153,6 +209,8 @@ export default async function ControlRoom() {
                     confirmed by {a.verifiedBy?.name ?? 'unknown'} ·{' '}
                     {new Date(a.issuedAt).toLocaleDateString('en-IN')}
                   </span>
+                  {a.reason ? <span className={styles.sideNote}> · “{a.reason}”</span> : null}
+                  <ResolveAlert alertId={a._id} areaSlug={a.area?.slug} canDecide={Boolean(verifier)} />
                 </li>
               ))}
               {(queue?.alerts ?? []).length === 0 ? <li className={styles.sideNote}>None.</li> : null}

@@ -262,3 +262,62 @@ the scoring, not the GROQ.
 Also: an area with reports that don't add up to a signal used to say "No reports
 in the last few days." It now shows the score, e.g. "1 report (+1) = 1. Not
 enough to act on yet."
+
+## 3 Oct 2026 · Auditing the decision path and what it found
+
+Asked Claude to rate the project as a judge. It gave functionality a 7, so the
+next prompt was "make it a 9.5 and tell me why it isn't". The answer was an
+audit of every path from report to alert, which found more than I expected:
+
+- **The App SDK control room only ever wrote drafts.** `editDocument` and
+  `createDocument` in `@sanity/sdk` act on the draft unless the handle says
+  `liveEdit: true`. Confirming a case in the Dashboard produced a draft alert
+  the public site would never see and the area stayed soggy. Found by reading
+  the SDK's own type declarations (`DocumentTypeHandle.liveEdit`), not by
+  clicking: the app has never been deployed. The decision, the alert and the
+  area turning red now go in one live-edit transaction.
+- **"Mark fixed" had no button.** `resolveAlert` existed, the server action
+  existed, nothing on the page called it. Fresh batch was unreachable from the
+  control room. There is now a "Mark fixed" form on every active alert and it
+  needs a verifier and a note residents can read.
+- **A case could be confirmed twice**, which made two alerts. `decideCase` now
+  only acts on cases waiting on a person, guards every write with the case
+  `_rev` and gives the alert a deterministic id (`alert-<caseId>`) so a race
+  still produces one alert.
+- **"Ask for a test" made the case disappear.** The queue only listed
+  `needsVerification` and the area logic only counted `watch` and
+  `needsVerification` as soggy, so asking for a lab test turned the golgappa
+  crisp. The scorer could also move a `testRequested` case back on the next
+  report. Now a pending test keeps the area soggy with its own reason, the
+  scorer leaves it alone and the control room has a "Waiting on a lab test"
+  section.
+- **Server actions trusted the page.** `decide` checked for a verifier cookie
+  but not the passphrase cookie and server actions are public endpoints. Every
+  action now checks the sign-in itself.
+- **Rule 2 was only half true.** Alerts had a verifier but the reason sat on the
+  case and the area page showed "Confirmed by X" without it. Alerts now carry
+  a required `reason`, the area page shows it and a Fresh batch shows what was
+  fixed.
+- **Rule 3 held on the pages but not in the API.** The dataset is public, so a
+  reporter's optional phone number and exact GPS point were one GROQ query away.
+  Contact details now go in a `reporterContact` document with the id
+  `private.contact.<reportId>`: ids with a dot are on a path and Sanity never
+  returns those to unauthenticated requests (the same mechanism that hides
+  drafts). The stored point is rounded to about 100 m after it has been used
+  to find the area.
+- The report route returned an HTML 500 page when Sanity failed, so the form
+  showed "No connection". Symptoms were stored unfiltered and a reading with a
+  made-up parameter id would crash the write. The input rules moved to
+  `lib/reportInput.ts` and every one has a test.
+- The "How this is decided" text on area pages hard-coded the thresholds that
+  live in `riskSettings`. It now reads them, so changing a rule in the Studio
+  changes the explanation too.
+
+The case rules (`lib/caseRules.ts`) are pure functions now and the engine calls
+them, so the human-only rule is tested directly: the scorer can raise a case to
+"needs verification" and never past it, even if it returned "confirmed". There
+is also a test that scans every GROQ string for a date field compared without
+`dateTime()`, which fails on yesterday's bug when I put it back. 11 tests → 29.
+
+What I can't verify from here: the App SDK app is typechecked against
+`@sanity/sdk` 3.7 but has not been run in the Dashboard.

@@ -117,3 +117,34 @@
   place-items: center;
   padding: var(--space-4);
 }
+
+.barRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.signOut {
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.done {
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  background: var(--ok-soft);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.done a {
+  color: var(--accent-deep);
+}

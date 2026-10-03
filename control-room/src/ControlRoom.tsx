@@ -18,12 +18,12 @@ import {useState} from 'react'
 const MIN_REASON = 10
 
 const QUEUE = /* groq */ `{
-  "needsVerification": *[_type == "waterCase" && status == "needsVerification"]
-    | order(riskScore desc, openedAt asc){
-      _id, riskScore, scoreBreakdown, aiSummary, openedAt,
+  "needsVerification": *[_type == "waterCase" && status in ["needsVerification", "testRequested"]]
+    | order(status asc, riskScore desc, openedAt asc){
+      _id, status, riskScore, scoreBreakdown, aiSummary, openedAt, decisionReason,
       "areaId": area._ref,
       "areaName": area->name,
-      "municipalEmail": area->municipalContact->email,
+      "areaHasAlert": count(*[_type == "alert" && area._ref == ^.area._ref && !defined(resolvedAt)]) > 0,
       "reports": reports[]->{
         _id, submittedAt, waterSigns, sourceKind,
         "peopleIll": illness.people,
@@ -56,13 +56,15 @@ type Report = {
 
 type Case = {
   _id: string
+  status: 'needsVerification' | 'testRequested'
+  decisionReason?: string
+  areaHasAlert?: boolean
   riskScore: number
   scoreBreakdown?: string
   aiSummary?: string
   openedAt?: string
   areaId: string
   areaName?: string
-  municipalEmail?: string
   reports?: Report[]
 }
 
@@ -87,7 +89,7 @@ export function ControlRoom() {
     <Card height="fill" padding={4} tone="transparent">
       <Stack space={5}>
         <Flex align="center" justify="space-between" gap={3} wrap="wrap">
-          <Heading size={3}>Needs verification ({cases.length})</Heading>
+          <Heading size={3}>Waiting on a person ({cases.length})</Heading>
           <Text size={1} muted>
             {verifier
               ? `Signed in as ${verifier.name}`
@@ -153,24 +155,34 @@ function CaseCard({row, verifier}: {row: Case; verifier: {_id: string; name: str
     setBusy(true)
     setError(null)
 
-    const caseHandle = createDocumentHandle({documentId: row._id, documentType: 'waterCase'})
+    // liveEdit: these documents are written by the API and never drafted, so
+    // edits must land on the published document. Without it the SDK writes a
+    // draft, and the public site would never see the decision.
+    const caseHandle = createDocumentHandle({
+      documentId: row._id,
+      documentType: 'waterCase',
+      liveEdit: true,
+    })
+    const areaHandle = createDocumentHandle({
+      documentId: row.areaId,
+      documentType: 'area',
+      liveEdit: true,
+    })
     const now = new Date().toISOString()
+    const decided = {
+      decisionReason: reason.trim(),
+      claimedBy: {_type: 'reference', _ref: verifier._id},
+      claimedAt: now,
+    }
 
     try {
       if (decision === 'confirm') {
-        // Two documents, one transaction: the decision on the case and the
-        // alert it produces. The alert always carries the person who signed it.
+        // One transaction: the decision, the alert it produces (with the
+        // person who signed it and their reason) and the area turning red.
         await apply([
-          editDocument(caseHandle, {
-            set: {
-              status: 'confirmed',
-              decisionReason: reason,
-              claimedBy: {_type: 'reference', _ref: verifier._id},
-              claimedAt: now,
-            },
-          }),
+          editDocument(caseHandle, {set: {status: 'confirmed', ...decided}}),
           createDocument(
-            {documentType: 'alert'},
+            {documentType: 'alert', documentId: `alert-${row._id}`, liveEdit: true},
             {
               area: {_type: 'reference', _ref: row.areaId},
               waterCase: {_type: 'reference', _ref: row._id},
@@ -181,20 +193,44 @@ function CaseCard({row, verifier}: {row: Case; verifier: {_id: string; name: str
                 'नल का पानी न पिएँ। जब तक सूचना न मिले, पीने और खाना बनाने के लिए उबला या पैकेज्ड पानी लें।',
               issuedAt: now,
               verifiedBy: {_type: 'reference', _ref: verifier._id},
+              reason: reason.trim(),
             },
           ),
-        ])
-      } else {
-        await apply(
-          editDocument(caseHandle, {
+          editDocument(areaHandle, {
             set: {
-              status: decision === 'dismiss' ? 'dismissed' : 'testRequested',
-              decisionReason: reason,
-              claimedBy: {_type: 'reference', _ref: verifier._id},
-              claimedAt: now,
+              state: 'phoot',
+              stateReason: 'Contamination confirmed by a health worker.',
+              stateChangedAt: now,
             },
           }),
-        )
+        ])
+      } else if (decision === 'requestTest') {
+        await apply([
+          editDocument(caseHandle, {set: {status: 'testRequested', ...decided}}),
+          editDocument(areaHandle, {
+            set: {
+              stateReason:
+                'A health worker has asked for a lab test. Boil or filter until the result is in.',
+            },
+          }),
+        ])
+      } else {
+        // Dismissed. If the area has no live alert, it goes back to crisp; the
+        // daily reconcile in the web app re-derives it from everything else.
+        await apply([
+          editDocument(caseHandle, {set: {status: 'dismissed', ...decided}}),
+          ...(row.areaHasAlert
+            ? []
+            : [
+                editDocument(areaHandle, {
+                  set: {
+                    state: 'crisp',
+                    stateReason: 'A health worker checked the reports and found no contamination.',
+                    stateChangedAt: now,
+                  },
+                }),
+              ]),
+        ])
       }
       setReason('')
     } catch (err) {
@@ -219,6 +255,15 @@ function CaseCard({row, verifier}: {row: Case; verifier: {_id: string; name: str
             {row.riskScore}
           </Badge>
         </Flex>
+
+        {row.status === 'testRequested' ? (
+          <Card padding={3} radius={2} tone="caution">
+            <Text size={1}>
+              Lab test requested{row.decisionReason ? `: “${row.decisionReason}”` : ''}. Confirm or
+              dismiss when the result is in.
+            </Text>
+          </Card>
+        ) : null}
 
         {row.scoreBreakdown ? <Text size={1}>{row.scoreBreakdown}</Text> : null}
 
@@ -289,19 +334,22 @@ function CaseCard({row, verifier}: {row: Case; verifier: {_id: string; name: str
               onClick={() => decide('confirm')}
             />
             <Button mode="ghost" text="Dismiss" disabled={!ready} onClick={() => decide('dismiss')} />
-            <Button
-              mode="ghost"
-              text="Ask for a test"
-              disabled={!ready}
-              onClick={() => decide('requestTest')}
-            />
+            {row.status !== 'testRequested' ? (
+              <Button
+                mode="ghost"
+                text="Ask for a test"
+                disabled={!ready}
+                onClick={() => decide('requestTest')}
+              />
+            ) : null}
           </Inline>
         </Stack>
 
         <Box>
           <Text size={0} muted>
-            Confirming turns the area red for residents and sends the evidence to{' '}
-            {row.municipalEmail ?? 'the municipal contact'}.
+            Confirming turns the area red for residents straight away, with your name and reason.
+            The municipal email goes out from the web control room only, where the server holds
+            the mail key.
           </Text>
         </Box>
       </Stack>

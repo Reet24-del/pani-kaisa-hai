@@ -25,8 +25,16 @@ export const AREA_QUERY = defineQuery(`
     "activeAlert": *[_type == "alert" && area._ref == ^._id && !defined(resolvedAt)]
       | order(issuedAt desc)[0]{
         severity, precautionsEn, precautionsHi, issuedAt,
+        "reason": coalesce(reason, waterCase->decisionReason),
         "verifiedBy": verifiedBy->{name, role}
       },
+
+    // The last fix, so a Fresh batch can say what was done.
+    "lastFix": *[_type == "alert" && area._ref == ^._id && defined(resolvedAt)]
+      | order(resolvedAt desc)[0]{resolvedAt, resolutionNote},
+
+    // The scoring rules are content, so the explanation reads them too.
+    "rules": *[_id == "riskSettings"][0]{windowHours, watchAt, verifyAt, points},
 
     // Anonymised: no location, no contact, no device hash.
     "reports": *[_type == "report" && area._ref == ^._id

@@ -59,6 +59,14 @@ export const structure: StructureResolver = (S) =>
         ),
       S.documentTypeListItem('waterCase').title('All cases'),
       S.documentTypeListItem('report').title('All reports'),
+      S.listItem()
+        .title('Reporter contacts (private)')
+        .child(
+          S.documentList()
+            .title('Reporter contacts')
+            .filter('_type == "reporterContact"')
+            .defaultOrdering([{field: '_createdAt', direction: 'desc'}]),
+        ),
       S.documentTypeListItem('waterSource').title('Water sources'),
       S.divider(),
       S.documentTypeListItem('safetyLimit').title('Safety limits (IS 10500)'),

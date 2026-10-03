@@ -3,6 +3,7 @@ import {notFound} from 'next/navigation'
 
 import {Golgappa} from '@/components/Golgappa'
 import {Disclaimer, SiteHeader} from '@/components/SiteHeader'
+import {DEFAULT_SETTINGS, type RiskSettings} from '@/lib/risk'
 import {STATE_LABEL, STATE_MEANING, type AreaState} from '@/lib/states'
 import {fetchSanity, sanityConfigured} from '@/sanity/lib/fetch'
 import {AREA_QUERY} from '@/sanity/lib/queries'
@@ -40,7 +41,12 @@ type Area = {
     precautionsEn: string
     precautionsHi?: string
     issuedAt: string
+    reason?: string
     verifiedBy?: {name: string; role: string}
+  }
+  lastFix?: {resolvedAt: string; resolutionNote?: string}
+  rules?: Partial<Pick<RiskSettings, 'windowHours' | 'watchAt' | 'verifyAt'>> & {
+    points?: Partial<RiskSettings['points']>
   }
   reports?: Report[]
   sources?: {_id: string; name: string; kind: string}[]
@@ -51,6 +57,10 @@ const SIGN_LABEL: Record<string, string> = {
   colour: 'colour',
   taste: 'taste',
   particles: 'particles',
+}
+
+function defined<T extends object>(value: T | null | undefined): Partial<T> {
+  return Object.fromEntries(Object.entries(value ?? {}).filter(([, v]) => v != null)) as Partial<T>
 }
 
 function day(iso?: string) {
@@ -77,6 +87,12 @@ export default async function AreaPage({params}: PageProps<'/area/[slug]'>) {
 
   const alert = area.activeAlert
   const reports = area.reports ?? []
+  // Missing fields come back as null from GROQ; keep the defaults for those.
+  const rules = {
+    ...DEFAULT_SETTINGS,
+    ...defined(area.rules),
+    points: {...DEFAULT_SETTINGS.points, ...defined(area.rules?.points)},
+  }
 
   return (
     <div className={styles.page}>
@@ -111,7 +127,15 @@ export default async function AreaPage({params}: PageProps<'/area/[slug]'>) {
           ) : null}
           {alert?.verifiedBy ? (
             <p className={styles.verified}>
-              Confirmed on {day(alert.issuedAt)} by {alert.verifiedBy.name}.
+              Confirmed on {day(alert.issuedAt)} by {alert.verifiedBy.name}
+              {alert.verifiedBy.role ? ` (${alert.verifiedBy.role})` : ''}
+              {alert.reason ? <>: “{alert.reason}”</> : '.'}
+            </p>
+          ) : null}
+          {!alert && area.state === 'fresh' && area.lastFix ? (
+            <p className={styles.verified}>
+              Fixed on {day(area.lastFix.resolvedAt)}
+              {area.lastFix.resolutionNote ? <>: “{area.lastFix.resolutionNote}”</> : '.'}
             </p>
           ) : null}
         </section>
@@ -122,11 +146,13 @@ export default async function AreaPage({params}: PageProps<'/area/[slug]'>) {
           <details className={styles.how}>
             <summary>How this is decided</summary>
             <p>
-              Reports from the same area within 72 hours are scored: each new reporter adds 1,
-              a household with illness adds 2, a test reading past the acceptable limit adds 2,
-              past the permissible limit adds 3. At 3 the area turns soggy on its own. At 6, or
-              the moment bacteria are found, a health worker has to look at it — and only a person
-              can confirm contamination.
+              Reports from the same area within {rules.windowHours} hours are scored: each new
+              reporter adds {rules.points.report}, a household with illness adds{' '}
+              {rules.points.illHousehold}, a test reading past the acceptable limit adds{' '}
+              {rules.points.overAcceptable}, past the permissible limit adds{' '}
+              {rules.points.overPermissible}. At {rules.watchAt} the area turns soggy on its own. At{' '}
+              {rules.verifyAt}, or the moment bacteria are found, a health worker has to look at it,
+              and only a person can confirm contamination.
             </p>
           </details>
         </section>

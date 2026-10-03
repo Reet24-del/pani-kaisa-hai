@@ -22,7 +22,8 @@ export const reportType = defineType({
     defineField({
       name: 'location',
       type: 'geopoint',
-      description: 'Never shown publicly. Public pins snap to the area centre.',
+      description:
+        'Rounded to about 100 m when stored, and never shown publicly. Public pins snap to the area centre. Contact details are not kept here at all, see Reporter contacts.',
       validation: (rule) => rule.required(),
     }),
     defineField({
@@ -130,17 +131,6 @@ export const reportType = defineType({
       type: 'string',
       description: 'Hashed device id for rate limiting and for counting unique reporters. No IP addresses are stored.',
       readOnly: true,
-    }),
-    defineField({
-      name: 'contact',
-      title: 'Contact (private)',
-      type: 'object',
-      description: 'Optional, never rendered on a public page.',
-      fields: [
-        defineField({name: 'phone', type: 'string'}),
-        defineField({name: 'email', type: 'string'}),
-      ],
-      options: {collapsible: true, collapsed: true},
     }),
     defineField({
       name: 'duplicateOf',

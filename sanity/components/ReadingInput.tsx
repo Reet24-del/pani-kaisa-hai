@@ -25,24 +25,24 @@ export function ReadingInput(props: ObjectInputProps) {
   const client = useClient({apiVersion})
   const value = props.value as ReadingValue | undefined
   const ref = value?.parameter?._ref
-  const [limit, setLimit] = useState<GaugeLimit | null>(null)
+  // Remember which parameter the loaded limit belongs to, so a cleared or
+  // changed parameter never shows a stale gauge.
+  const [loaded, setLoaded] = useState<{ref: string; limit: GaugeLimit | null} | null>(null)
+  const limit = ref && loaded?.ref === ref ? loaded.limit : null
 
   useEffect(() => {
+    if (!ref) return
     let cancelled = false
-    if (!ref) {
-      setLimit(null)
-      return
-    }
     client
       .fetch<GaugeLimit | null>(
         `*[_id == $id][0]{parameter, unit, rule, acceptableMin, acceptableMax, permissibleMax}`,
         {id: ref},
       )
       .then((result) => {
-        if (!cancelled) setLimit(result)
+        if (!cancelled) setLoaded({ref, limit: result})
       })
       .catch(() => {
-        if (!cancelled) setLimit(null)
+        if (!cancelled) setLoaded({ref, limit: null})
       })
     return () => {
       cancelled = true

@@ -1,6 +1,7 @@
 import 'server-only'
 
 import {summariseCase} from '@/lib/ai'
+import {OPEN_STATUSES, areaStateFor, checkDecision, checkResolution, statusAfterScore} from '@/lib/caseRules'
 import {sendAlertEmail} from '@/lib/email'
 import {DEFAULT_SETTINGS, breakdown, scoreReports, type ReportLike, type RiskSettings} from '@/lib/risk'
 import type {AreaState} from '@/lib/states'
@@ -16,8 +17,6 @@ import {getWriteClient} from './client'
  * `waterCase` definition — the transitions and the human-only rule stay exactly
  * as they are here.
  */
-
-const OPEN_STATUSES = ['logged', 'watch', 'needsVerification', 'testRequested']
 
 async function settings(): Promise<RiskSettings> {
   const client = getWriteClient()
@@ -43,7 +42,7 @@ export async function intakeReport(reportId: string): Promise<{caseId: string} |
   const open = await client.fetch<{_id: string} | null>(
     `*[_type == "waterCase" && area._ref == $areaId && status in $open]
        | order(openedAt desc)[0]{_id}`,
-    {areaId: report.areaId, open: OPEN_STATUSES},
+    {areaId: report.areaId, open: [...OPEN_STATUSES]},
   )
 
   let caseId = open?._id
@@ -116,9 +115,8 @@ export async function rescoreCase(caseId: string): Promise<void> {
   const suspectedSource = await traceSource(doc.areaId)
 
   // A machine may push a case to "needs verification" and no further. Cases a
-  // person has already decided are never moved by the scorer.
-  const decided = ['confirmed', 'dismissed', 'resolved', 'closed']
-  const status = decided.includes(doc.status) ? doc.status : score.status
+  // person has already acted on are never moved by the scorer.
+  const status = statusAfterScore(doc.status, score.status)
 
   const summary = await summariseCase({
     areaName: doc.areaName,
@@ -187,28 +185,15 @@ export async function refreshAreaState(areaId: string): Promise<AreaState> {
         status, riskScore, scoreBreakdown
       }
     }`,
-    {areaId, open: OPEN_STATUSES},
+    {areaId, open: [...OPEN_STATUSES]},
   )
 
-  let state: AreaState = 'crisp'
-  let reason = 'No reports in the last few days.'
-
-  const worst = (info.openCases ?? []).sort((a, b) => (b.riskScore ?? 0) - (a.riskScore ?? 0))[0]
-
-  if (info.activeAlert) {
-    state = 'phoot'
-    reason = 'Contamination confirmed by a health worker.'
-  } else if (info.lastResolvedAt && withinDays(info.lastResolvedAt, config.quietDays)) {
-    state = 'fresh'
-    reason = 'Fix recorded. Keep boiling water for a few days.'
-  } else if (worst && (worst.status === 'watch' || worst.status === 'needsVerification')) {
-    state = 'soggy'
-    reason = worst.scoreBreakdown ?? 'Complaints are rising.'
-  } else if (worst) {
-    // Reports exist but don't add up to a signal yet. Say so, rather than
-    // claiming nothing was reported.
-    reason = `${worst.scoreBreakdown ?? 'Some reports'}. Not enough to act on yet.`
-  }
+  const {state, reason} = areaStateFor({
+    activeAlert: Boolean(info.activeAlert),
+    lastResolvedAt: info.lastResolvedAt,
+    openCases: info.openCases ?? [],
+    quietDays: config.quietDays,
+  })
 
   if (info.state !== state) {
     await client.patch(areaId).set({state, stateReason: reason, stateChangedAt: new Date().toISOString()}).commit()
@@ -217,11 +202,6 @@ export async function refreshAreaState(areaId: string): Promise<AreaState> {
   }
 
   return state
-}
-
-function withinDays(iso: string, days: number): boolean {
-  const t = Date.parse(iso)
-  return Number.isFinite(t) && Date.now() - t < days * 86_400_000
 }
 
 /**
@@ -234,11 +214,8 @@ export async function decideCase(input: {
   reason: string
   verifierId: string
 }): Promise<{ok: true; alertId?: string} | {ok: false; error: string}> {
-  const {caseId, decision, reason, verifierId} = input
-
-  if (!reason || reason.trim().length < 10) {
-    return {ok: false, error: 'Write a reason of at least 10 characters. It goes on the record.'}
-  }
+  const {caseId, decision, verifierId} = input
+  const reason = (input.reason ?? '').trim()
 
   const client = getWriteClient()
 
@@ -252,13 +229,15 @@ export async function decideCase(input: {
 
   const doc = await client.fetch<{
     _id: string
+    _rev: string
+    status: string
     areaId: string
     areaName: string
     scoreBreakdown?: string
     municipalEmail?: string
   } | null>(
-    `*[_id == $id][0]{
-      _id, scoreBreakdown,
+    `*[_type == "waterCase" && _id == $id][0]{
+      _id, _rev, status, scoreBreakdown,
       "areaId": area._ref,
       "areaName": area->name,
       "municipalEmail": area->municipalContact->email
@@ -267,11 +246,17 @@ export async function decideCase(input: {
   )
   if (!doc) return {ok: false, error: 'Case not found.'}
 
+  // Only cases waiting on a person can be decided, once. Deciding the same case
+  // twice must not issue a second alert.
+  const problem = checkDecision({status: doc.status, decision, reason})
+  if (problem) return {ok: false, error: problem}
+
   const now = new Date().toISOString()
 
   if (decision === 'dismiss') {
     await client
       .patch(caseId)
+      .ifRevisionId(doc._rev)
       .set({status: 'dismissed', decisionReason: reason, claimedBy: ref(verifierId), claimedAt: now})
       .commit()
     await refreshAreaState(doc.areaId)
@@ -281,32 +266,42 @@ export async function decideCase(input: {
   if (decision === 'requestTest') {
     await client
       .patch(caseId)
+      .ifRevisionId(doc._rev)
       .set({status: 'testRequested', decisionReason: reason, claimedBy: ref(verifierId), claimedAt: now})
       .commit()
     await refreshAreaState(doc.areaId)
     return {ok: true}
   }
 
-  // Confirm: create the alert, turn the area red, tell the municipality.
-  const alert = await client.create({
-    _type: 'alert',
-    area: ref(doc.areaId),
-    waterCase: ref(caseId),
-    severity: 'doNotDrink',
-    precautionsEn:
-      'Do not drink tap water. Use boiled or packaged water for drinking and cooking until this is cleared.',
-    precautionsHi:
-      'नल का पानी न पिएँ। जब तक सूचना न मिले, पीने और खाना बनाने के लिए उबला या पैकेज्ड पानी लें।',
-    issuedAt: now,
-    verifiedBy: ref(verifierId),
-  })
-
-  await client.patch(caseId).set({
-    status: 'confirmed',
-    decisionReason: reason,
-    claimedBy: ref(verifierId),
-    claimedAt: now,
-  }).commit()
+  // Confirm: the decision and the alert land in one transaction, guarded by the
+  // case revision, so two verifiers pressing confirm at once make one alert.
+  const alertId = `alert-${caseId}`
+  await client
+    .transaction()
+    .patch(caseId, (p) =>
+      p.ifRevisionId(doc._rev).set({
+        status: 'confirmed',
+        decisionReason: reason,
+        claimedBy: ref(verifierId),
+        claimedAt: now,
+      }),
+    )
+    .create({
+      _id: alertId,
+      _type: 'alert',
+      area: ref(doc.areaId),
+      waterCase: ref(caseId),
+      severity: 'doNotDrink',
+      precautionsEn:
+        'Do not drink tap water. Use boiled or packaged water for drinking and cooking until this is cleared.',
+      precautionsHi:
+        'नल का पानी न पिएँ। जब तक सूचना न मिले, पीने और खाना बनाने के लिए उबला या पैकेज्ड पानी लें।',
+      issuedAt: now,
+      verifiedBy: ref(verifierId),
+      reason,
+    })
+    .commit()
+  const alert = {_id: alertId}
 
   await refreshAreaState(doc.areaId)
 
@@ -331,17 +326,32 @@ export async function resolveAlert(input: {
   verifierId: string
 }): Promise<{ok: true} | {ok: false; error: string}> {
   const client = getWriteClient()
-  const alert = await client.fetch<{areaId: string; caseId: string} | null>(
-    `*[_id == $id][0]{"areaId": area._ref, "caseId": waterCase._ref}`,
-    {id: input.alertId},
-  )
+  const note = (input.note ?? '').trim()
+
+  const [verifier, alert] = await Promise.all([
+    client.fetch<{canVerify: boolean} | null>(`*[_type == "contact" && _id == $id][0]{canVerify}`, {
+      id: input.verifierId,
+    }),
+    client.fetch<{_rev: string; areaId: string; caseId: string; resolvedAt?: string} | null>(
+      `*[_type == "alert" && _id == $id][0]{_rev, resolvedAt, "areaId": area._ref, "caseId": waterCase._ref}`,
+      {id: input.alertId},
+    ),
+  ])
+  if (!verifier?.canVerify) return {ok: false, error: 'Only a verifier can mark an alert fixed.'}
   if (!alert) return {ok: false, error: 'Alert not found.'}
 
+  const problem = checkResolution({note, alreadyResolved: Boolean(alert.resolvedAt)})
+  if (problem) return {ok: false, error: problem}
+
   const now = new Date().toISOString()
-  await client.patch(input.alertId).set({resolvedAt: now, resolutionNote: input.note}).commit()
-  if (alert.caseId) {
-    await client.patch(alert.caseId).set({status: 'resolved'}).commit()
-  }
+  const tx = client
+    .transaction()
+    .patch(input.alertId, (p) =>
+      p.ifRevisionId(alert._rev).set({resolvedAt: now, resolutionNote: note, resolvedBy: ref(input.verifierId)}),
+    )
+  if (alert.caseId) tx.patch(alert.caseId, (p) => p.set({status: 'resolved'}))
+  await tx.commit()
+
   await refreshAreaState(alert.areaId)
   return {ok: true}
 }
@@ -356,7 +366,7 @@ export async function tick(): Promise<{closed: number; recovered: number}> {
 
   const staleCases = await client.fetch<{_id: string; areaId: string}[]>(
     `*[_type == "waterCase" && status in ["logged", "watch"]
-       && (!defined(lastSignalAt) || lastSignalAt < $cutoff)]{_id, "areaId": area._ref}`,
+       && (!defined(lastSignalAt) || dateTime(lastSignalAt) < dateTime($cutoff))]{_id, "areaId": area._ref}`,
     {cutoff: new Date(Date.now() - config.windowHours * 3600_000).toISOString()},
   )
 
@@ -365,13 +375,16 @@ export async function tick(): Promise<{closed: number; recovered: number}> {
   }
 
   const freshAreas = await client.fetch<{_id: string}[]>(
-    `*[_type == "area" && state == "fresh" && stateChangedAt < $cutoff]{_id}`,
+    `*[_type == "area" && state == "fresh" && dateTime(stateChangedAt) < dateTime($cutoff)]{_id}`,
     {cutoff: new Date(Date.now() - config.quietDays * 86_400_000).toISOString()},
   )
 
-  const touched = new Set([...staleCases.map((c) => c.areaId), ...freshAreas.map((a) => a._id)])
-  for (const areaId of touched) {
-    if (areaId) await refreshAreaState(areaId)
+  // Then reconcile every area, not only the ones touched above. A decision made
+  // in the Studio or the Dashboard app writes the case directly, so this is the
+  // backstop that keeps every golgappa honest at least once a day.
+  const allAreas = await client.fetch<string[]>(`*[_type == "area"]._id`)
+  for (const areaId of allAreas) {
+    await refreshAreaState(areaId)
   }
 
   return {closed: staleCases.length, recovered: freshAreas.length}
