@@ -204,6 +204,10 @@ export async function refreshAreaState(areaId: string): Promise<AreaState> {
   } else if (worst && (worst.status === 'watch' || worst.status === 'needsVerification')) {
     state = 'soggy'
     reason = worst.scoreBreakdown ?? 'Complaints are rising.'
+  } else if (worst) {
+    // Reports exist but don't add up to a signal yet. Say so, rather than
+    // claiming nothing was reported.
+    reason = `${worst.scoreBreakdown ?? 'Some reports'}. Not enough to act on yet.`
   }
 
   if (info.state !== state) {

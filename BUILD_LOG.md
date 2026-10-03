@@ -246,3 +246,19 @@ recognise (`Unauthorized - Session not found`). Replaced the copy-paste with
 `scripts/rotate-write-token.sh`, which creates the token with `sanity tokens
 add` and pipes it straight into `vercel env add` and `.env.local`, so the key is
 never on screen or on the clipboard.
+
+## 3 Oct 2026 · A filter that never matched
+
+Filed a report through the live form to show it saving. It saved (Sanity went
+from 3 reports to 4), but the Ward 22 page still said "Nothing reported here
+recently". The area query filtered on `submittedAt > dateTime(now()) - …`, and
+`submittedAt` is stored as a string, so GROQ compared a string with a datetime
+and every report fell out. Same pattern in the report route's rate limit, which
+means the 3-per-device-per-day limit had never fired. Both now wrap the field in
+`dateTime()`; checked against the live dataset before changing the code (0 → 1
+for Ward 22, 0 → 3 for Sector 14). The tests didn't catch it because they cover
+the scoring, not the GROQ.
+
+Also: an area with reports that don't add up to a signal used to say "No reports
+in the last few days." It now shows the score, e.g. "1 report (+1) = 1. Not
+enough to act on yet."

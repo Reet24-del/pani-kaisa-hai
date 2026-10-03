@@ -86,7 +86,7 @@ export async function POST(request: Request) {
   if (matched) {
     const recent = await client.fetch<number>(
       `count(*[_type == "report" && deviceHash == $hash && area._ref == $areaId
-        && submittedAt > dateTime(now()) - 60*60*24])`,
+        && dateTime(submittedAt) > dateTime(now()) - 60*60*24])`,
       {hash: deviceHash, areaId: matched._id},
     )
     if (recent >= MAX_REPORTS_PER_AREA_PER_DAY) {

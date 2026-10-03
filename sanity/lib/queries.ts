@@ -30,7 +30,7 @@ export const AREA_QUERY = defineQuery(`
 
     // Anonymised: no location, no contact, no device hash.
     "reports": *[_type == "report" && area._ref == ^._id
-        && submittedAt > dateTime(now()) - 60*60*24*14
+        && dateTime(submittedAt) > dateTime(now()) - 60*60*24*14
         && !defined(duplicateOf)]
       | order(submittedAt desc)[0...50]{
         _id, submittedAt, waterSigns, sourceKind,
