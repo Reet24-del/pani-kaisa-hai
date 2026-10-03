@@ -12,12 +12,17 @@ import {tick} from '@/sanity/lib/cases'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
+  // Vercel sends `Authorization: Bearer $CRON_SECRET` on cron runs. Without a
+  // secret the route is open only in local dev, never on a deployment.
   const secret = process.env.CRON_SECRET
   if (secret) {
     const header = request.headers.get('authorization')
     if (header !== `Bearer ${secret}`) {
       return NextResponse.json({error: 'Not allowed.'}, {status: 401})
     }
+  } else if (process.env.VERCEL) {
+    console.error('[tick] CRON_SECRET is not set; refusing to run.')
+    return NextResponse.json({error: 'Not allowed.'}, {status: 401})
   }
 
   try {
