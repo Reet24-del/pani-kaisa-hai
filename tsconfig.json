@@ -39,6 +39,7 @@
   ],
   "exclude": [
     "control-room",
+    "functions",
     "node_modules"
   ]
 }

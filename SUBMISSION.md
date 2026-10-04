@@ -57,7 +57,7 @@ A 98 second walkthrough told as a story. The frames are the live site, captured 
 
 https://github.com/Reet24-del/pani-kaisa-hai
 
-Next.js 16 (App Router, TypeScript, plain CSS Modules), Sanity Studio v6 embedded at `/studio`, an App SDK control room in `control-room/`, a Workflows definition in `sanity/workflows/`, Leaflet with OpenStreetMap tiles. 29 tests cover the risk score, the case rules (including "only a person can confirm"), the report input rules, the workflow definition and a lint for GROQ date comparisons.
+Next.js 16 (App Router, TypeScript, plain CSS Modules), Sanity Studio v6 embedded at `/studio`, an App SDK control room in `control-room/`, a Workflows definition in `sanity/workflows/`, a scheduled Sanity Function in `functions/daily-tick/`, Leaflet with OpenStreetMap tiles. 33 tests cover the risk score, the case rules (including "only a person can confirm"), the daily tick, the report input rules, the workflow definition and a lint for GROQ date comparisons.
 
 ## My Build Process
 
@@ -95,6 +95,8 @@ The engine's own validator rejected my first version twice. The workflow name ha
 Being honest about where it stands: Workflows is in early access and the engine is not deployed on my project yet. Until it is, the same stages and the same human-only guard run through `sanity/lib/cases.ts`, which the report route and both control rooms call. The workflow file passes `defineWorkflow`'s validator and has tests.
 
 **App SDK.** `control-room/` is a custom app for the Sanity Dashboard: the verifier queue with live data, the evidence for each case and the confirm or dismiss decision. Confirming writes the case decision and the alert in one transaction. There is also a `/control` page in the Next app behind a passphrase, so judges can try it without a Sanity login. Both write the same fields.
+
+**Sanity Functions.** The daily tick (quiet cases close, a Fresh batch goes back to Crisp after its quiet days, every golgappa is re-derived) is a scheduled Sanity Function in `functions/daily-tick/`, deployed from `sanity.blueprint.ts` with its own robot token that only has Editor rights on this project. It calls the same `runTick` as the app, which takes any Sanity client, so the function and the old Vercel cron share one tested implementation. The cron stays as a backup 15 minutes later; a second run changes nothing. Its first deployed run timed out at the 10 second default, because re-deriving every area takes longer than that from Sanity's servers, so the blueprint now gives it 120 seconds.
 
 **Custom Studio input.** Readings are drawn against their limit in the Studio, using the same component the control room uses, so an editor sees "780 mg/L, over the 500 acceptable limit" instead of a bare number.
 
@@ -142,11 +144,10 @@ It still found things worth fixing. `/api/cron/tick` would run for anyone, becau
 ### What I deliberately did not build
 
 - Photo upload on reports. Asset uploads need the write token path designed properly and a reading carries more weight than a blurry photo.
-- Sanity Functions. The scheduled tick runs as a Vercel cron calling the same `tick()` a scheduled Function would.
 - A Hindi interface. The *content* is bilingual (area names, advice, alert precautions), the UI chrome is still English.
 
 ## Sanity Project Details
 
 - **Project ID:** `ya4g5th1`
 - **Dataset:** `production` (public)
-- Schema: `sanity/schemaTypes/` (9 types), workflow: `sanity/workflows/waterCase.ts`, App SDK app: `control-room/`
+- Schema: `sanity/schemaTypes/` (9 types), workflow: `sanity/workflows/waterCase.ts`, App SDK app: `control-room/`, scheduled Function: `functions/daily-tick/` with `sanity.blueprint.ts`

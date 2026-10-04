@@ -50,3 +50,8 @@ control-room/dist
 
 # Share setup placeholders, never local credentials
 !.env.example
+
+# Sanity Functions
+functions/**/.env*
+functions/**/.build/
+functions/**/node_modules/

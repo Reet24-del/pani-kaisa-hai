@@ -5,9 +5,9 @@ import {tick} from '@/sanity/lib/cases'
 /**
  * The scheduled tick: quiet cases close, recovered areas go back to crisp.
  *
- * Runs as a Vercel cron (see vercel.json). The same function is what a Sanity
- * scheduled Function will call once Workflows is in place — the timers live in
- * one place either way.
+ * The Sanity scheduled Function in `functions/daily-tick/` runs the same
+ * `runTick` at 00:15 UTC. This Vercel cron (see vercel.json) runs at 00:30 as a
+ * backup; a second run changes nothing.
  */
 export const dynamic = 'force-dynamic'
 

@@ -1,11 +1,13 @@
 import 'server-only'
 
 import {summariseCase} from '@/lib/ai'
-import {OPEN_STATUSES, areaStateFor, checkDecision, checkResolution, statusAfterScore} from '@/lib/caseRules'
+import {OPEN_STATUSES, checkDecision, checkResolution, statusAfterScore} from '@/lib/caseRules'
 import {sendAlertEmail} from '@/lib/email'
-import {DEFAULT_SETTINGS, breakdown, scoreReports, type ReportLike, type RiskSettings} from '@/lib/risk'
+import {breakdown, scoreReports, type ReportLike, type RiskSettings} from '@/lib/risk'
 import type {AreaState} from '@/lib/states'
 import {rainMm48h} from '@/lib/weather'
+
+import {loadSettings, refreshAreaStateWith, runTick} from '@/lib/dailyTick'
 
 import {getWriteClient} from './client'
 
@@ -18,15 +20,8 @@ import {getWriteClient} from './client'
  * as they are here.
  */
 
-async function settings(): Promise<RiskSettings> {
-  const client = getWriteClient()
-  const doc = await client.fetch<Partial<RiskSettings> | null>(`*[_id == "riskSettings"][0]`)
-  if (!doc) return DEFAULT_SETTINGS
-  return {
-    ...DEFAULT_SETTINGS,
-    ...doc,
-    points: {...DEFAULT_SETTINGS.points, ...(doc.points ?? {})},
-  } as RiskSettings
+function settings(): Promise<RiskSettings> {
+  return loadSettings(getWriteClient())
 }
 
 /** Attach a new report to its area's open case, opening one if needed, then rescore. */
@@ -167,41 +162,7 @@ async function traceSource(areaId: string): Promise<string | null> {
  * explain itself.
  */
 export async function refreshAreaState(areaId: string): Promise<AreaState> {
-  const client = getWriteClient()
-  const config = await settings()
-
-  const info = await client.fetch<{
-    state: AreaState
-    activeAlert: {_id: string} | null
-    lastResolvedAt: string | null
-    openCases: {status: string; riskScore: number; scoreBreakdown?: string}[]
-  }>(
-    `{
-      "state": *[_id == $areaId][0].state,
-      "activeAlert": *[_type == "alert" && area._ref == $areaId && !defined(resolvedAt)][0]{_id},
-      "lastResolvedAt": *[_type == "alert" && area._ref == $areaId && defined(resolvedAt)]
-        | order(resolvedAt desc)[0].resolvedAt,
-      "openCases": *[_type == "waterCase" && area._ref == $areaId && status in $open]{
-        status, riskScore, scoreBreakdown
-      }
-    }`,
-    {areaId, open: [...OPEN_STATUSES]},
-  )
-
-  const {state, reason} = areaStateFor({
-    activeAlert: Boolean(info.activeAlert),
-    lastResolvedAt: info.lastResolvedAt,
-    openCases: info.openCases ?? [],
-    quietDays: config.quietDays,
-  })
-
-  if (info.state !== state) {
-    await client.patch(areaId).set({state, stateReason: reason, stateChangedAt: new Date().toISOString()}).commit()
-  } else {
-    await client.patch(areaId).set({stateReason: reason}).commit()
-  }
-
-  return state
+  return refreshAreaStateWith(getWriteClient(), areaId)
 }
 
 /**
@@ -361,33 +322,7 @@ export async function resolveAlert(input: {
  * Runs from /api/cron/tick until it moves into a Sanity scheduled Function.
  */
 export async function tick(): Promise<{closed: number; recovered: number}> {
-  const client = getWriteClient()
-  const config = await settings()
-
-  const staleCases = await client.fetch<{_id: string; areaId: string}[]>(
-    `*[_type == "waterCase" && status in ["logged", "watch"]
-       && (!defined(lastSignalAt) || dateTime(lastSignalAt) < dateTime($cutoff))]{_id, "areaId": area._ref}`,
-    {cutoff: new Date(Date.now() - config.windowHours * 3600_000).toISOString()},
-  )
-
-  for (const c of staleCases) {
-    await client.patch(c._id).set({status: 'closed'}).commit()
-  }
-
-  const freshAreas = await client.fetch<{_id: string}[]>(
-    `*[_type == "area" && state == "fresh" && dateTime(stateChangedAt) < dateTime($cutoff)]{_id}`,
-    {cutoff: new Date(Date.now() - config.quietDays * 86_400_000).toISOString()},
-  )
-
-  // Then reconcile every area, not only the ones touched above. A decision made
-  // in the Studio or the Dashboard app writes the case directly, so this is the
-  // backstop that keeps every golgappa honest at least once a day.
-  const allAreas = await client.fetch<string[]>(`*[_type == "area"]._id`)
-  for (const areaId of allAreas) {
-    await refreshAreaState(areaId)
-  }
-
-  return {closed: staleCases.length, recovered: freshAreas.length}
+  return runTick(getWriteClient())
 }
 
 function ref(id: string) {

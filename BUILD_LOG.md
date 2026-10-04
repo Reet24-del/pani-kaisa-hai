@@ -420,3 +420,44 @@ the local cache, so Vercel kept serving "Phoot gaya". The site's `SanityLive`
 only refreshes on changes it sees while a browser is connected. So with the
 live page open, the area's `stateChangedAt` was written back with its own value
 to fire a live event, and both pages updated.
+
+## 4 Oct 2026, afternoon · The daily tick becomes a Sanity Function
+
+Asked "can't we implement that now?" about the one Sanity feature the post
+listed as not built. It turned out to take about an hour.
+
+- **Shared code first.** `tick()` lived in `sanity/lib/cases.ts`, which is
+  `server-only`, uses `@/` paths and imports the AI and email modules. None of
+  that can go into a Function bundle. Moved `loadSettings`,
+  `refreshAreaStateWith` and `runTick` into `lib/dailyTick.ts`. They take any
+  client with `fetch` and `patch`, and use relative imports only. `cases.ts`
+  now delegates to them, and the Function imports the same file. Four tests use
+  a fake client.
+- **Blueprint.** `sanity.blueprint.ts` defines a robot token (Editor on this
+  project only) and `daily-tick`, a scheduled function at `15 0 * * *`.
+  Scheduled functions need an organization-scoped Stack, and promoting a
+  project Stack can't be undone. So `blueprints init --organization-id`
+  created one at organization scope from the start.
+- **Proof.** Running it locally with no token got through every read and failed
+  on the first write ("Insufficient permissions"). That showed the bundle,
+  including `lib/dailyTick.ts`, resolved. Then it was deployed, and the
+  schedule was moved to a few minutes ahead to watch a real run before setting
+  it back.
+
+What went wrong:
+
+- **The first extraction copied the wrong code.** `tick()` had been read
+  earlier from the stale local copy, so `runTick` lacked the `dateTime()` fix
+  and the "re-derive every area" backstop. The repo's own GROQ date lint test
+  caught it. The extraction was redone from the committed code.
+- **The first deployed run timed out** at the 10 second default (twice, counting
+  the retry). Re-deriving all ten areas one request at a time takes longer
+  from Sanity's servers. `timeout: 120` fixed it. The logged run:
+  `daily tick: closed 0 quiet case(s), 0 area(s) back to crisp`, which is right
+  for the day.
+- The CLI warns that a Blueprint "should not be co-located with a Sanity
+  Studio". It works here, but `functions/` is excluded from the app's
+  `tsconfig.json`, because Vercel never installs the function's own
+  dependencies.
+
+The Vercel cron stays as a backup at 00:30. A second run changes nothing.
