@@ -6,7 +6,7 @@ tags: devchallenge, sanitychallenge, sanity, ai
 
 *This is a submission for the [Sanity Challenge, Path Two: Vibe-Code Something Strange](https://dev.to/challenges/sanity-2026-09-16)*
 
-<!-- Draft. Replace the video TODO and the agent session TODO, then delete this comment before publishing. -->
+<!-- Draft. Replace the agent session TODO, then delete this comment before publishing. -->
 
 ## What I Built
 
@@ -39,7 +39,9 @@ It is for residents, ASHA workers and residents' association volunteers in India
 - `/control` the verifier queue. **Passphrase: `pani-demo`**
 - `/studio` the embedded Sanity Studio
 
-TODO: 60 to 90 second video (shot list in `docs/demo-video.md`)
+{% embed https://youtu.be/EbuvB2EyRbg %}
+
+A 98 second walkthrough told as a story. The frames are the live site, captured by a script; the narration is Murf's Hindi voice Shweta.
 
 ![The landing page: a golgappa stall asking "is this pani clean?"](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/landing.jpg)
 

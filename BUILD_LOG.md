@@ -369,3 +369,41 @@ characters. The area went to Phoot gaya with the verifier and reason on the
 public page. Took the post's screenshots in the browser pane. The control room
 shot comes from a local dev server using the built-in demo passphrase, so no
 password was typed into the live site by the agent.
+
+## 4 Oct 2026 · Making the demo video without a screen recorder
+
+Asked Claude to record the demo video itself, narrated with Murf in Indian
+English, as a story. The Mac had no ffmpeg, no Chrome and no Homebrew, so
+everything is built from what macOS ships with. The scripts are in
+`scripts/demo-video/`.
+
+- **Frames:** `capture.swift` drives an offscreen `WKWebView` at 1440×810
+  through the live site. It scrolls, clicks the simulator, and steps through the
+  report form without sending it. It saves 98 frames at 1920×1080. The control
+  room frame comes from a local dev server using the built-in demo passphrase.
+- **Edit:** `encode.swift` renders a timeline into H.264 with AVFoundation:
+  slow zooms on stills, crossfades between scenes, captions drawn with Core
+  Text, and the narration clips laid in at their start times.
+- **Story and timing:** `build.mjs` voices each line, measures it, and spreads
+  each scene's frames across its lines. The first cut used the macOS voice
+  "Rishi" so the timing could be checked before spending Murf credits.
+
+What went wrong:
+
+- **The browser pane wasn't usable for frames.** Emulating a fixed viewport
+  rendered the page into a corner of the pane at about 313 px wide.
+- **Things that need animation frames didn't appear.** In the hidden window,
+  macOS paused `requestAnimationFrame`, so the girl never appeared in the hero
+  and the map tiles stayed grey. `inactiveSchedulingPolicy = .none` fixed the
+  girl. The tiles also needed a normal Safari user agent, because OpenStreetMap
+  refuses WebKit's bare one. Then they needed CSS forcing their opacity to 1,
+  because Leaflet's fade-in had left them at 0 (the log said `0/1` per tile).
+- **The first story cut gave the ending away.** The simulator scene opened by
+  scrolling past the map, which already showed Sector 14 red. Dropped the
+  scroll.
+- **The Hindi pronunciation was poor.** Murf's Indian English voice (Isha)
+  pronounced "Kaisa", "Bhaiya" and "phoot gaya" badly. Murf's pronunciation
+  dictionary returned HTTP 500 for every form tried (IPA with Hindi phonemes,
+  simplified IPA, plain respellings). Murf's voices are single-language, so the
+  fix was a Hindi voice, Shweta, with the Hindi words sent in Devanagari and the
+  English left as English. Captions stay in Latin script.
