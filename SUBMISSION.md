@@ -6,7 +6,7 @@ tags: devchallenge, sanitychallenge, sanity, ai
 
 *This is a submission for the [Sanity Challenge, Path Two: Vibe-Code Something Strange](https://dev.to/challenges/sanity-2026-09-16)*
 
-<!-- Draft. Replace the two TODOs (video, agent session) and delete this comment before publishing. -->
+<!-- Draft. Replace the video TODO and the agent session TODO, then delete this comment before publishing. -->
 
 ## What I Built
 
@@ -41,9 +41,15 @@ It is for residents, ASHA workers and residents' association volunteers in India
 
 TODO: 60 to 90 second video (shot list in `docs/demo-video.md`)
 
-![Landing page](TODO-screenshot-landing.png)
-![Report form](TODO-screenshot-report.png)
-![Control room](TODO-screenshot-control.png)
+![The landing page: a golgappa stall asking "is this pani clean?"](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/landing.jpg)
+
+![The map: nine crisp golgappas and one burst in Sector 14](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/map.jpg)
+
+![Step one of the report form: where are you?](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/report.jpg)
+
+![Sector 14 after a health worker confirmed it: Phoot gaya, what to do in English and Hindi, and who confirmed it and why](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/area-phoot-gaya.jpg)
+
+![The control room: an empty queue and the Sector 14 alert with its verifier and reason](https://raw.githubusercontent.com/Reet24-del/pani-kaisa-hai/main/docs/screenshots/control-room.jpg)
 
 > Early warning from residents, not a lab test. All data in the demo is sample data.
 
@@ -51,11 +57,11 @@ TODO: 60 to 90 second video (shot list in `docs/demo-video.md`)
 
 https://github.com/Reet24-del/pani-kaisa-hai
 
-Next.js 16 (App Router, TypeScript, plain CSS Modules), Sanity Studio v6 embedded at `/studio`, an App SDK control room in `control-room/`, a Workflows definition in `sanity/workflows/`, Leaflet with OpenStreetMap tiles. 11 tests cover the risk score and the workflow definition.
+Next.js 16 (App Router, TypeScript, plain CSS Modules), Sanity Studio v6 embedded at `/studio`, an App SDK control room in `control-room/`, a Workflows definition in `sanity/workflows/`, Leaflet with OpenStreetMap tiles. 29 tests cover the risk score, the case rules (including "only a person can confirm"), the report input rules, the workflow definition and a lint for GROQ date comparisons.
 
 ## My Build Process
 
-I built this with Claude Code over about four sessions and I kept a build log the whole way (`BUILD_LOG.md` in the repo), including the parts that went badly. This section is the short version.
+I built this with Claude Code over about seven sessions between 19 September and 4 October and I kept a build log the whole way (`BUILD_LOG.md` in the repo), including the parts that went badly. This section is the short version.
 
 ### Day 1: schema first, then the whole spine before the backend existed
 
@@ -114,6 +120,25 @@ Feedback was that the girl was right but the page still read like a SaaS templat
 - I finally checked the IS 10500 numbers I had written from memory on Day 1. Every value was right, but two **citations** were wrong (chlorine is in Table 2, bacteria in Table 6). Because limits are content, the fix was a three document patch, not a code change. That was the schema decision paying off.
 - The hero said "Indore · live" right under a banner saying "Sample data". It now says demo.
 
+### 3 October: auditing the decision path
+
+I asked Claude to rate the project as a judge would. It gave functionality a 7, so I asked what would make it a 9.5. The answer was an audit of every path from report to alert, and it found real bugs:
+
+- **The App SDK control room only ever wrote drafts.** `@sanity/sdk` edits the draft unless the document handle says `liveEdit: true`. Confirming in the Dashboard made a draft alert the public site never saw. Now the decision, the alert and the area turning red go in one live-edit transaction.
+- **"Mark fixed" had no button,** so Fresh batch was unreachable from the control room.
+- **A case could be confirmed twice,** which made two alerts. Decisions now act only on cases waiting for a person, every write is guarded by the case `_rev`, and the alert id is derived from the case.
+- **Server actions trusted the page.** Server actions are public endpoints, so each one now checks the sign-in itself.
+- **A reporter's phone number was one GROQ query away** on a public dataset. Contact details now live in `private.contact.<reportId>` documents. Ids with a dot sit on a path that Sanity never returns to unauthenticated requests.
+- **A date filter never matched.** `submittedAt` is a string, and comparing it to `dateTime(now())` without `dateTime()` was always false. Area pages showed no reports and the rate limit never fired. There is now a test that scans every GROQ string for that mistake.
+
+The case rules became pure functions with tests, so "the scorer can raise a case to needs verification and never past it" is tested directly. Tests went from 11 to 29.
+
+### The last evening: a check from a stale copy
+
+On the last evening I asked a local Claude Code session "what is left". It read an old copy of the project on my Mac that had no git remote and stopped at 21 September, so its first answer was confidently wrong. The mistake surfaced when a CLI deploy from that folder was **blocked** by Vercel: its commits were authored with an email the Hobby plan doesn't accept. That block saved me, because the deploy would have replaced the day's fixes with week-old code. Comparing the blocked deploy's metadata with the live one showed where the real repo was.
+
+It still found things worth fixing. `/api/cron/tick` would run for anyone, because the secret check only ran *if* `CRON_SECRET` was set, and it wasn't. Now the secret is set and the route fails closed on any deployment. The citation fix had been written but never run against the live data. Two old write tokens from before the rotation were still active, and are now deleted. Then I confirmed the Sector 14 case myself in the control room and watched the area go red on the map.
+
 ### What I deliberately did not build
 
 - Photo upload on reports. Asset uploads need the write token path designed properly and a reading carries more weight than a blurry photo.
@@ -128,4 +153,4 @@ Feedback was that the girl was right but the page still read like a SaaS templat
 
 ## Agent Session
 
-TODO: upload the Claude Code session at https://dev.to/agent_sessions/new, check it for keys, click **Make Public** and embed it here.
+TODO: embed the build session (19 to 21 September, from the first idea to the stall redesign). The file is `agent-session/build-session-19-21-sep.jsonl` on my Mac, with the pasted token and the local passphrase already redacted. Upload it at https://dev.to/agent_sessions/new, click **Make Public** and paste the embed here.

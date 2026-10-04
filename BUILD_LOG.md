@@ -361,3 +361,11 @@ What was still worth keeping:
 
 Refused by the agent's permission guard, and left to a person: running the
 citation fix against production, and rewriting commit authors.
+
+**4 Oct, morning.** Confirmed the Sector 14 case in the live `/control`. The
+first try stopped after sign-in (the logs showed one POST), because the buttons
+stay disabled until you pick who you are and write a reason of at least ten
+characters. The area went to Phoot gaya with the verifier and reason on the
+public page. Took the post's screenshots in the browser pane. The control room
+shot comes from a local dev server using the built-in demo passphrase, so no
+password was typed into the live site by the agent.
