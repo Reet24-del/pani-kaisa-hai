@@ -6,8 +6,6 @@ tags: devchallenge, sanitychallenge, sanity, ai
 
 *This is a submission for the [Sanity Challenge, Path Two: Vibe-Code Something Strange](https://dev.to/challenges/sanity-2026-09-16)*
 
-<!-- Draft. Replace the agent session TODO, then delete this comment before publishing. -->
-
 ## What I Built
 
 Every golgappa wala in India gets asked the same thing before the first bite: *pani saaf hai na?* Is this water clean?
@@ -152,7 +150,3 @@ It still found things worth fixing. `/api/cron/tick` would run for anyone, becau
 - **Project ID:** `ya4g5th1`
 - **Dataset:** `production` (public)
 - Schema: `sanity/schemaTypes/` (9 types), workflow: `sanity/workflows/waterCase.ts`, App SDK app: `control-room/`
-
-## Agent Session
-
-TODO: embed the build session (19 to 21 September, from the first idea to the stall redesign). The file is `agent-session/build-session-19-21-sep.jsonl` on my Mac, with the pasted token and the local passphrase already redacted. Upload it at https://dev.to/agent_sessions/new, click **Make Public** and paste the embed here.
