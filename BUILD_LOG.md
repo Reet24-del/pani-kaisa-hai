@@ -407,3 +407,8 @@ What went wrong:
   simplified IPA, plain respellings). Murf's voices are single-language, so the
   fix was a Hindi voice, Shweta, with the Hindi words sent in Devanagari and the
   English left as English. Captions stay in Latin script.
+
+**4 Oct, published.** The submission is live on DEV at
+https://dev.to/reet_singh_ee97da2986538e/pani-kaisa-hai-a-golgappa-map-that-warns-a-neighbourhood-about-bad-water-but-only-after-a-human-5he7. It went up from the
+browser pane: saved as a draft first, the preview checked (video embed, five
+screenshots, table, tags), then published. No agent session was attached.

@@ -1,6 +1,6 @@
 ---
 title: "Pani Kaisa Hai? A golgappa map that warns a neighbourhood about bad water, but only after a human checks"
-published: false
+published: true
 tags: devchallenge, sanitychallenge, sanity, ai
 ---
 
