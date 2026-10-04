@@ -86,7 +86,7 @@ In that session: the map and area pages, the four step report form, the report A
 - `next build` failed because the env module threw at import time, so a build with no Sanity project was impossible. I rewrote it to fall back to a placeholder project id.
 - Node's test runner needed `allowImportingTsExtensions` before `--experimental-strip-types` would accept `.ts` imports.
 
-### Reaching past the Studio: Workflows and the App SDK
+### Reaching past the Studio: Workflows, the App SDK and Functions
 
 **Workflows.** The verification flow lives in `sanity/workflows/waterCase.ts` as data: intake → score → watch or needs verification → human decision → alert → resolved → closed. The AI check is a system actor that can move a case as far as `verification`. Confirming or dismissing sits in a `decide` activity whose actions are gated on the `verifier` role. An agent and a person use the same transitions, only the person can take the last one.
 
