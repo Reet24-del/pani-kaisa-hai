@@ -412,3 +412,11 @@ What went wrong:
 https://dev.to/reet_singh_ee97da2986538e/pani-kaisa-hai-a-golgappa-map-that-warns-a-neighbourhood-about-bad-water-but-only-after-a-human-5he7. It went up from the
 browser pane: saved as a draft first, the preview checked (video embed, five
 screenshots, table, tags), then published. No agent session was attached.
+
+**4 Oct, after publishing.** Marked the Sector 14 alert fixed (as R. Mehta,
+with a sample note), so the live demo now shows the full cycle: soggy → phoot
+gaya → fresh batch. It was done from a local dev server, which only refreshed
+the local cache, so Vercel kept serving "Phoot gaya". The site's `SanityLive`
+only refreshes on changes it sees while a browser is connected. So with the
+live page open, the area's `stateChangedAt` was written back with its own value
+to fire a live event, and both pages updated.
